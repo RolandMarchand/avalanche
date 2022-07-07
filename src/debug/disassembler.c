@@ -36,12 +36,13 @@ static void print_code();
 static void print_op_constant();
 static void print_op_constant_long();
 
-void disassemble(lump *l)
+void disassemble(struct lump *l)
 {
 	lmp = l;
 	cur_line = 0, prev_line = -1;
+	offset = 0;
 
-	for (offset = 0; offset < lump_count(lmp); offset++) {
+	for (offset = 0; offset < lmp->count; offset++) {
 		printf("%04d\t", offset);
 		print_line();
 		print_code();
@@ -60,15 +61,17 @@ static inline void print_line()
 
 static void print_code()
 {
-	switch(lump_get_code(lmp, offset)) {
+	switch(lmp->array[offset]) {
 		/* The next byte is the constant's address. */
 	case OP_CONSTANT:
 		print_op_constant();
+		offset += 1;
 		break;
 
 	/* The next two bytes make up the constant's address. */
 	case OP_CONSTANT_LONG:
 		print_op_constant_long();
+		offset += 2;
 		break;
 
 	case OP_RETURN:
@@ -87,16 +90,22 @@ static void print_code()
 
 static void print_op_constant()
 {
+	int const_offset = lmp->array[offset + 1];
+
 	printf("%-16s %04d %g\n", \
 	       "OP_CONSTANT",
-	       lump_get_constant_offset(lmp, offset),
-	       lump_get_constant(lmp, offset));
+	       const_offset,
+	       lmp->constants->array[const_offset]);
 }
 
 static void print_op_constant_long()
 {
+	uint8_t byte1 = lmp->array[offset + 1];
+	uint8_t byte2 = lmp->array[offset + 2];
+	int const_offset = byte1 << 8 | byte2;
+
 	printf("%-16s %04d %g\n", \
 	       "OP_CONSTANT_LONG",
-	       lump_get_constant_offset(lmp, offset),
-	       lump_get_constant(lmp, offset));
+	       const_offset,
+	       lmp->constants->array[const_offset]);
 }

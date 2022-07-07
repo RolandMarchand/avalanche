@@ -25,3 +25,20 @@
 
 #include "opcode.h"
 #include "lump.h"
+
+#include <stdint.h>
+
+struct vm {
+	struct lump *lump;
+	uint8_t *pc;
+};
+
+enum interpret_result {
+	INTERPRET_OK,
+	INTERPRET_COMPILE_ERROR,
+	INTERPRET_RUNTIME_ERROR
+};
+
+/* void vm_init(); */
+/* void vm_free(); */
+enum interpret_result interpret(struct lump *lmp);

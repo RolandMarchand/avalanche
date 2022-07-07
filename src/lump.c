@@ -27,30 +27,26 @@
 
 #include <stdlib.h>
 
-struct lump {
-	uint8_t *array;
-	int size;
-	int count;
-	struct constant_array *constants;
-};
-
-static void lump_grow(lump *lmp);
+static void lump_grow(struct lump *lmp);
 /* Add a code to a lump that does not take arguments. */
-static void lump_add_code_niladic(lump *l, enum op_code code);
+static void lump_add_code_niladic(struct lump *l,
+				  enum op_code code);
 /* Add a code to a lump that takes one byte argument. */
-static void lump_add_code_monadic(lump *l, enum op_code code, uint8_t val);
+static void lump_add_code_monadic(struct lump *l,
+				  enum op_code code, uint8_t val);
 /* Add a code to a lump that takes two byte arguments. `val` is stored
  * as a big-endian sequence. */
-static void lump_add_code_dyladic(lump *l, enum op_code code, uint16_t val);
+static void lump_add_code_dyladic(struct lump *l,
+				  enum op_code code, uint16_t val);
 
-lump *lump_init()
+struct lump *lump_init()
 {
-	lump *lmp = malloc(sizeof(lump));
+	struct lump *lmp = malloc(sizeof(struct lump));
 
 	ASSERT(lmp != NULL, "Unable to allocate memory for lump.");
 
 	lmp->count = 0;
-	lmp->size = LUMP_BUFFER_COUNT * sizeof(char);
+	lmp->size = LUMP_BUFFER_COUNT * sizeof(uint8_t);
 	lmp->array = malloc(lmp->size);
 	lmp->constants = constant_array_init();
 
@@ -59,7 +55,7 @@ lump *lump_init()
 	return lmp;
 }
 
-void lump_free(lump *lmp)
+void lump_free(struct lump *lmp)
 {
 	constant_array_free(lmp->constants);
 	free(lmp->array);
@@ -67,13 +63,13 @@ void lump_free(lump *lmp)
 	lmp = NULL;
 }
 
-int lump_add_code(lump *lmp, enum op_code code)
+int lump_add_code(struct lump *lmp, enum op_code code)
 {
 	lump_add_code_niladic(lmp, code);
 	return lmp->count - 1;
 }
 
-int lump_add_constant(lump *lmp, double d)
+int lump_add_constant(struct lump *lmp, double d)
 {
 	int offset = constant_array_add(lmp->constants, d);
 
@@ -85,7 +81,7 @@ int lump_add_constant(lump *lmp, double d)
 	return offset;
 }
 
-static void lump_grow(lump *lmp)
+static void lump_grow(struct lump *lmp)
 {
 	lmp->size += LUMP_BUFFER_COUNT * sizeof(uint8_t);
 	lmp->array = realloc(lmp->array, lmp->size);
@@ -93,41 +89,7 @@ static void lump_grow(lump *lmp)
 	ASSERT(lmp->array != NULL, "Unable to grow lump.");
 }
 
-uint8_t *lump_get_array(lump *lmp)
-{
-	return lmp->array;
-}
-
-uint8_t lump_get_code(lump *lmp, int offset)
-{
-	return lmp->array[offset];
-}
-
-double lump_get_constant(lump *lmp, int offset)
-{
-	return lmp->constants->array[lump_get_constant_offset(lmp, offset)];
-}
-
-int lump_get_constant_offset(lump *lmp, int offset)
-{
-	uint8_t *code = lmp->array + offset;
-
-        ASSERT(*code == OP_CONSTANT || *code == OP_CONSTANT_LONG,
-	       "The code at the offset must either be OP_CONSTANT or \
-OP_CONSTANT_LONG");
-
-	if (*code == OP_CONSTANT)
-		return *(code + 1);
-
-	return *(code + 1) << 8 | *(code + 2);
-}
-
-int lump_count(lump *lmp)
-{
-	return lmp->count;
-}
-
-static void lump_add_code_niladic(lump *lmp, enum op_code code)
+static void lump_add_code_niladic(struct lump *lmp, enum op_code code)
 {
 	if (lmp->count == (lmp->size / sizeof(uint8_t)))
 		lump_grow(lmp);
@@ -136,7 +98,8 @@ static void lump_add_code_niladic(lump *lmp, enum op_code code)
 	lmp->count++;
 }
 
-static void lump_add_code_monadic(lump *lmp, enum op_code code, uint8_t val)
+static void lump_add_code_monadic(struct lump *lmp,
+				  enum op_code code, uint8_t val)
 {
         if (lmp->count + 1 >= (lmp->size / sizeof(uint8_t)))
                 lump_grow(lmp);
@@ -146,7 +109,8 @@ static void lump_add_code_monadic(lump *lmp, enum op_code code, uint8_t val)
         lmp->count += 2;
 }
 
-static void lump_add_code_dyladic(lump *lmp, enum op_code code, uint16_t val)
+static void lump_add_code_dyladic(struct lump *lmp,
+				  enum op_code code, uint16_t val)
 {
         if (lmp->count + 2 >= (lmp->size / sizeof(uint8_t)))
                 lump_grow(lmp);

@@ -5,8 +5,9 @@ project(Avalanche VERSION 0.1
   LANGUAGES C)
 
 add_library(vm STATIC
-  src/constant.c
-  src/lump.c)
+  src/vm.c
+  src/lump.c
+  src/constant.c)
 target_include_directories(vm PUBLIC ./)
 
 add_library(_debug STATIC

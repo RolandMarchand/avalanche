@@ -21,8 +21,42 @@
  * SUCH DAMAGE.
  */
 
-#pragma once
+#include "vm.h"
 
-#include "src/vm.h"
+#include <stdio.h>
 
-void disassemble(struct lump *l);
+static struct vm vm;
+
+static enum interpret_result run();
+
+enum interpret_result interpret(struct lump *lmp) {
+	vm.lump = lmp;
+	vm.pc = lmp->array;
+	return run();
+}
+
+static enum interpret_result run()
+{
+#define READ_BYTE() (*vm.pc++)
+
+	while (1) {
+		uint8_t instruction;
+		switch (instruction = READ_BYTE()) {
+		case OP_RETURN:
+			return INTERPRET_OK;
+		case OP_CONSTANT:
+			printf("%f\n", vm.lump->constants->array[READ_BYTE()]);
+			break;
+		case OP_CONSTANT_LONG: {
+			uint8_t byte1 = READ_BYTE();
+			uint8_t byte2 = READ_BYTE();
+			printf("%f\n", vm.lump->constants->array[byte1 << 8 | byte2]);
+			break;
+		}
+		default:
+			break;
+		}
+	}
+	
+#undef READ_BYTE
+}

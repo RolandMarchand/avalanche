@@ -30,6 +30,7 @@
 	{					\
 		if (!(expr)) {			\
 			fprintf(stderr, error);	\
+			fprintf(stderr, "\n");	\
 			exit(EXIT_FAILURE);	\
 		}				\
 	}

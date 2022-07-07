@@ -24,25 +24,23 @@
 #pragma once
 
 #include "opcode.h"
+#include "constant.h"
 
 #include <stdint.h>
 
+struct lump {
+	uint8_t *array;
+	int size;
+	int count;
+	struct constant_array *constants;
+};
+
 #define LUMP_BUFFER_COUNT 8
 
-/* Dynamic Array. The type is opaque because the developer should not
- * have to use `struct constant_array` methods. */
-typedef struct lump lump;
-
-lump *lump_init();
-void lump_free(lump *lmp);
+struct lump *lump_init();
+void lump_free(struct lump *lmp);
 
 /* Return the code's offset. */
-int lump_add_code(lump *lmp, enum op_code);
+int lump_add_code(struct lump *lmp, enum op_code code);
 /* Return the constant's offset. */
-int lump_add_constant(lump *lmp, double value);
-
-uint8_t lump_get_code(lump *lmp, int offset);
-uint8_t *lump_get_array(lump *lmp);
-double lump_get_constant(lump *lmp, int offset);
-int lump_get_constant_offset(lump *lmp, int offset);
-int lump_count(lump *lmp);
+int lump_add_constant(struct lump *lmp, double value);
