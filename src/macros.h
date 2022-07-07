@@ -21,20 +21,15 @@
  * SUCH DAMAGE.
  */
 
-#include "vm.h"
+#pragma once
 
-int main(int argc, char **argv)
-{
-	lump *l = lump_init();
-	lump_add_code(l, OP_RETURN);
-	lump_add_code(l, OP_LINE_INC);
-	lump_add_constant(l, 127);
-	lump_add_constant(l, 0x812b);
-	for (int i = 0; i < 300; i++) {
-		lump_add_constant(l, i);
-		if (i % 5 == 0)
-			lump_add_code(l, OP_LINE_INC);
+#include <stdlib.h>
+#include <stdio.h>
+
+#define ASSERT(expr, error)			\
+	{					\
+		if (!(expr)) {			\
+			perror(error);		\
+			exit(EXIT_FAILURE);	\
+		}				\
 	}
-	lump_del(l);
-	return 0;
-}

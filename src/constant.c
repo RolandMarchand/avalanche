@@ -21,20 +21,47 @@
  * SUCH DAMAGE.
  */
 
-#include "vm.h"
+#include "constant.h"
+#include "src/macros.h"
 
-int main(int argc, char **argv)
+#include <stdlib.h>
+
+static void constant_array_grow(struct constant_array *ca);
+
+struct constant_array *constant_array_init()
 {
-	lump *l = lump_init();
-	lump_add_code(l, OP_RETURN);
-	lump_add_code(l, OP_LINE_INC);
-	lump_add_constant(l, 127);
-	lump_add_constant(l, 0x812b);
-	for (int i = 0; i < 300; i++) {
-		lump_add_constant(l, i);
-		if (i % 5 == 0)
-			lump_add_code(l, OP_LINE_INC);
-	}
-	lump_del(l);
-	return 0;
+	struct constant_array *ca = malloc(sizeof(struct constant_array));
+
+	ASSERT(ca != NULL, "Unable to allocate memory for constant_array.");
+
+	ca->count = 0;
+	ca->size = CONSTANT_ARRAY_BUFFER_COUNT * sizeof(double);
+	ca->array = malloc(ca->size);
+
+	ASSERT(ca->array != NULL, "Unable to allocate memory for constant_array.");
+
+	return ca;
+}
+
+int constant_array_add(struct constant_array *ca, double d)
+{
+	if (ca->count == (ca->size / sizeof(double)))
+		constant_array_grow(ca);
+	ca->array[ca->count] = d;
+	return ca->count++;
+}
+
+static void constant_array_grow(struct constant_array *ca)
+{
+	ca->size += CONSTANT_ARRAY_BUFFER_COUNT * sizeof(double);
+	ca->array = realloc(ca->array, ca->size);
+
+	ASSERT(ca->array != NULL, "Unable to grow constant_array.");
+}
+
+void constant_array_del(struct constant_array *ca)
+{
+	free(ca->array);
+	free(ca);
+	ca = NULL;
 }

@@ -21,20 +21,19 @@
  * SUCH DAMAGE.
  */
 
-#include "vm.h"
+#pragma once
 
-int main(int argc, char **argv)
-{
-	lump *l = lump_init();
-	lump_add_code(l, OP_RETURN);
-	lump_add_code(l, OP_LINE_INC);
-	lump_add_constant(l, 127);
-	lump_add_constant(l, 0x812b);
-	for (int i = 0; i < 300; i++) {
-		lump_add_constant(l, i);
-		if (i % 5 == 0)
-			lump_add_code(l, OP_LINE_INC);
-	}
-	lump_del(l);
-	return 0;
-}
+#define CONSTANT_ARRAY_BUFFER_COUNT 8
+
+struct constant_array {
+	double *array;
+	int size;
+	int count;
+};
+
+/* Allocates a `constant_array` and returns its pointer. */
+struct constant_array *constant_array_init();
+/* Return the constant's index. */
+int constant_array_add(struct constant_array *ca, double value);
+/* Free the array and set `ca` to NULL. */
+void constant_array_del(struct constant_array *ca);

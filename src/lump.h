@@ -21,20 +21,26 @@
  * SUCH DAMAGE.
  */
 
-#include "vm.h"
+#pragma once
 
-int main(int argc, char **argv)
-{
-	lump *l = lump_init();
-	lump_add_code(l, OP_RETURN);
-	lump_add_code(l, OP_LINE_INC);
-	lump_add_constant(l, 127);
-	lump_add_constant(l, 0x812b);
-	for (int i = 0; i < 300; i++) {
-		lump_add_constant(l, i);
-		if (i % 5 == 0)
-			lump_add_code(l, OP_LINE_INC);
-	}
-	lump_del(l);
-	return 0;
-}
+#include "opcode.h"
+
+#include <stdint.h>
+
+#define LUMP_BUFFER_COUNT 8
+
+/* Dynamic Array. The type is opaque because the developer should not
+ * have to use `struct constant_array` methods. */
+typedef struct lump lump;
+
+lump *lump_init();
+void lump_del(lump *l);
+
+/* Return the code's offset. */
+int lump_add_code(lump *l, enum op_code);
+/* Return the constant's offset. */
+int lump_add_constant(lump *l, double value);
+
+uint8_t lump_get_code(lump *l, int offset);
+double lump_get_constant(lump *l, int offset);
+int lump_count(lump *l);
