@@ -93,6 +93,11 @@ static void lump_grow(lump *lmp)
 	ASSERT(lmp->array != NULL, "Unable to grow lump.");
 }
 
+uint8_t *lump_get_array(lump *lmp)
+{
+	return lmp->array;
+}
+
 uint8_t lump_get_code(lump *lmp, int offset)
 {
 	return lmp->array[offset];
@@ -100,7 +105,21 @@ uint8_t lump_get_code(lump *lmp, int offset)
 
 double lump_get_constant(lump *lmp, int offset)
 {
-	return lmp->constants->array[offset];
+	return lmp->constants->array[lump_get_constant_offset(lmp, offset)];
+}
+
+int lump_get_constant_offset(lump *lmp, int offset)
+{
+	uint8_t *code = lmp->array + offset;
+
+        ASSERT(*code == OP_CONSTANT || *code == OP_CONSTANT_LONG,
+	       "The code at the offset must either be OP_CONSTANT or \
+OP_CONSTANT_LONG");
+
+	if (*code == OP_CONSTANT)
+		return *(code + 1);
+
+	return *(code + 1) << 8 | *(code + 2);
 }
 
 int lump_count(lump *lmp)

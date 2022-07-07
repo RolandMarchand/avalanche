@@ -34,13 +34,15 @@
 typedef struct lump lump;
 
 lump *lump_init();
-void lump_free(lump *l);
+void lump_free(lump *lmp);
 
 /* Return the code's offset. */
-int lump_add_code(lump *l, enum op_code);
+int lump_add_code(lump *lmp, enum op_code);
 /* Return the constant's offset. */
-int lump_add_constant(lump *l, double value);
+int lump_add_constant(lump *lmp, double value);
 
-uint8_t lump_get_code(lump *l, int offset);
-double lump_get_constant(lump *l, int offset);
-int lump_count(lump *l);
+uint8_t lump_get_code(lump *lmp, int offset);
+uint8_t *lump_get_array(lump *lmp);
+double lump_get_constant(lump *lmp, int offset);
+int lump_get_constant_offset(lump *lmp, int offset);
+int lump_count(lump *lmp);

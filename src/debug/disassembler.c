@@ -39,10 +39,9 @@ static void print_op_constant_long();
 void disassemble(lump *l)
 {
 	lmp = l;
-	offset = 0;
 	cur_line = 0, prev_line = -1;
 
-	for (; offset < lump_count(lmp); offset++) {
+	for (offset = 0; offset < lump_count(lmp); offset++) {
 		printf("%04d\t", offset);
 		print_line();
 		print_code();
@@ -88,21 +87,16 @@ static void print_code()
 
 static void print_op_constant()
 {
-	uint8_t const_offset = lump_get_code(lmp, ++offset);
-	double const_val = lump_get_constant(lmp, const_offset);
-
 	printf("%-16s %04d %g\n", \
-	       "OP_CONSTANT", const_offset, const_val);
+	       "OP_CONSTANT",
+	       lump_get_constant_offset(lmp, offset),
+	       lump_get_constant(lmp, offset));
 }
 
 static void print_op_constant_long()
 {
-	int const_offset = lump_get_code(lmp, ++offset);
-	const_offset <<= sizeof(char) * 8;
-	const_offset |= lump_get_code(lmp, ++offset);
-
-	double const_val = lump_get_constant(lmp, const_offset);
-
 	printf("%-16s %04d %g\n", \
-	       "OP_CONSTANT_LONG", const_offset, const_val);
+	       "OP_CONSTANT_LONG",
+	       lump_get_constant_offset(lmp, offset),
+	       lump_get_constant(lmp, offset));
 }
