@@ -7,10 +7,14 @@ project(Avalanche VERSION 0.1
 add_library(vm STATIC
   src/constant.c
   src/lump.c)
-
 target_include_directories(vm PUBLIC ./)
+
+add_library(_debug STATIC
+  src/debug/disassembler.c)
+target_include_directories(_debug PUBLIC ./)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_executable(avalanche src/main.c)
-target_link_libraries(avalanche PUBLIC vm)
+target_link_libraries(avalanche PUBLIC vm _debug)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
