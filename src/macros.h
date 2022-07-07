@@ -29,7 +29,7 @@
 #define ASSERT(expr, error)			\
 	{					\
 		if (!(expr)) {			\
-			perror(error);		\
+			fprintf(stderr, error);	\
 			exit(EXIT_FAILURE);	\
 		}				\
 	}
