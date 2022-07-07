@@ -36,4 +36,4 @@ struct constant_array *constant_array_init();
 /* Return the constant's index. */
 int constant_array_add(struct constant_array *ca, double value);
 /* Free the array and set `ca` to NULL. */
-void constant_array_del(struct constant_array *ca);
+void constant_array_free(struct constant_array *ca);

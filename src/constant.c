@@ -43,6 +43,14 @@ struct constant_array *constant_array_init()
 	return ca;
 }
 
+void constant_array_free(struct constant_array *ca)
+{
+	free(ca->array);
+	free(ca);
+	ca = NULL;
+}
+
+
 int constant_array_add(struct constant_array *ca, double d)
 {
 	if (ca->count == (ca->size / sizeof(double)))
@@ -57,11 +65,4 @@ static void constant_array_grow(struct constant_array *ca)
 	ca->array = realloc(ca->array, ca->size);
 
 	ASSERT(ca->array != NULL, "Unable to grow constant_array.");
-}
-
-void constant_array_del(struct constant_array *ca)
-{
-	free(ca->array);
-	free(ca);
-	ca = NULL;
 }

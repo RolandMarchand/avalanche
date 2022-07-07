@@ -34,7 +34,7 @@
 typedef struct lump lump;
 
 lump *lump_init();
-void lump_del(lump *l);
+void lump_free(lump *l);
 
 /* Return the code's offset. */
 int lump_add_code(lump *l, enum op_code);

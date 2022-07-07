@@ -59,9 +59,9 @@ lump *lump_init()
 	return lmp;
 }
 
-void lump_del(lump *lmp)
+void lump_free(lump *lmp)
 {
-	constant_array_del(lmp->constants);
+	constant_array_free(lmp->constants);
 	free(lmp->array);
 	free(lmp);
 	lmp = NULL;
