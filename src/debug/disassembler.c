@@ -25,53 +25,53 @@
 
 #include <stdio.h>
 
+static void print_code(struct lump *lmp, int *offset, int *line);
+static void print_op_constant(struct lump *lmp, int *offset);
+static void print_op_constant_long(struct lump *lmp, int *offset);
 
-
-static int cur_line, prev_line;
-static int offset;
-static struct lump *lmp;
-
-static inline void print_line();
-static void print_code();
-static void print_op_constant();
-static void print_op_constant_long();
-
-void disassemble(struct lump *l)
+void disassemble(struct lump *lmp)
 {
-	lmp = l;
-	cur_line = 0, prev_line = -1;
-	offset = 0;
-
-	for (offset = 0; offset < lmp->count; offset++) {
+	int cur_line = 0, prev_line = -1;
+	for (int offset = 0; offset < lmp->count; offset++) {
 		printf("%04d\t", offset);
-		print_line();
-		print_code();
+
+		if (cur_line == prev_line) {
+			printf("|\t");
+		} else {
+			printf("%04d\t", cur_line);
+			prev_line = cur_line;
+		}
+
+		print_code(lmp, &offset, &cur_line);
 	}
 }
 
-static inline void print_line()
+void disassemble_instruction(struct lump *lmp, int offset)
 {
-	if (cur_line == prev_line) {
-		printf("|\t");
-	} else {
-		printf("%04d\t", cur_line);
-		prev_line = cur_line;
+	/* TODO, fill up a static table to avoid reading the whole
+	 * code array every function call. */
+	int line = 0;
+	for(int i = 0; i < offset; i++) {
+		if (lmp->array[i] == OP_LINE_INC)
+			line++;
 	}
+
+	print_code(lmp, &offset, &line);
 }
 
-static void print_code()
+static void print_code(struct lump *lmp, int *offset, int *line)
 {
-	switch(lmp->array[offset]) {
+	switch(lmp->array[*offset]) {
 		/* The next byte is the constant's address. */
 	case OP_CONSTANT:
-		print_op_constant();
-		offset += 1;
+		print_op_constant(lmp, offset);
+		*offset += 1;
 		break;
 
 	/* The next two bytes make up the constant's address. */
 	case OP_CONSTANT_LONG:
-		print_op_constant_long();
-		offset += 2;
+		print_op_constant_long(lmp, offset);
+		*offset += 2;
 		break;
 
 	case OP_RETURN:
@@ -80,7 +80,7 @@ static void print_code()
 
 	case OP_LINE_INC:
 		printf("OP_LINE_INC\n");
-		cur_line++;
+		(*line)++;
 		break;
 
 	default:
@@ -88,9 +88,9 @@ static void print_code()
 	}
 }
 
-static void print_op_constant()
+static void print_op_constant(struct lump *lmp, int *offset)
 {
-	int const_offset = lmp->array[offset + 1];
+	int const_offset = lmp->array[*offset + 1];
 
 	printf("%-16s %04d %g\n", \
 	       "OP_CONSTANT",
@@ -98,10 +98,10 @@ static void print_op_constant()
 	       lmp->constants->array[const_offset]);
 }
 
-static void print_op_constant_long()
+static void print_op_constant_long(struct lump *lmp, int *offset)
 {
-	uint8_t byte1 = lmp->array[offset + 1];
-	uint8_t byte2 = lmp->array[offset + 2];
+	uint8_t byte1 = lmp->array[*offset + 1];
+	uint8_t byte2 = lmp->array[*offset + 2];
 	int const_offset = byte1 << 8 | byte2;
 
 	printf("%-16s %04d %g\n", \

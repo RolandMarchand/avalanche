@@ -26,3 +26,4 @@
 #include "src/vm.h"
 
 void disassemble(struct lump *l);
+void disassemble_instruction(struct lump *lmp, int offset);

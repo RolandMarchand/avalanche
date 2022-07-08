@@ -22,6 +22,7 @@
  */
 
 #include "vm.h"
+#include "debug/debug.h"
 
 #include <stdio.h>
 
@@ -40,6 +41,9 @@ static enum interpret_result run()
 #define READ_BYTE() (*vm.pc++)
 
 	while (1) {
+#ifdef DEBUG_TRACE_EXECUTION
+		disassemble_instruction(vm.lump, (int)(vm.pc - vm.lump->array));
+#endif
 		uint8_t instruction;
 		switch (instruction = READ_BYTE()) {
 		case OP_RETURN:
