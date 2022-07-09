@@ -1,0 +1,294 @@
+# Single-line comments are written using a semicolon
+
+
+# Member Variables
+int x = 8
+byte y = 127 # holds one byte of signed data
+uint ui = 23 # unsigned, cannot be negative
+ubyte ub = 255
+
+float f = 1.2 # all floats are doubles
+float g = .3 # ERROR, not allowed!
+
+bool b = true
+str s = "Hello World!"
+array a = [1, false, "brown fox"] # an array, similar to list in Python
+                                  # or in GDScript. it can hold
+                                  # different types of variables at once
+
+# map holds key-value pairs
+map d = { 
+	"key" : "value",
+	42 : true
+} 
+
+# pool arrays can only hold one type
+str_array s_arr = ["Hi", "there", "!"] 
+
+
+# Constants
+const int FLIP_ME  = 01134
+const bool IS_IT_DUCK_TIME = true
+
+
+# Enums
+enum { ZERO, ONE , TWO, THREE }
+enum NamedEnum { ONE = 1, TWO, THREE }
+
+
+# Functions
+func foo():
+	# tab indentation only
+	pass # placeholder keyword for future code
+
+func add(int first, int second) -> int: # return type
+	return first + second
+
+
+# Printing Values
+func printing():
+	print("Hello, World!")
+	print("Avalanche " + "is" + " awesome.") # shorthand for:
+	print(str::cat("Avalanche ", "is", " awesome."))
+
+	# print() has an explicit str::ftm() statement
+	print("It has been raining for %d days.\n", 3)
+	print(str::ftm("It has been raining for %d days.\n", 3))
+
+	print_err("This gets printed to STDERR.")
+
+
+# Math
+func doing_math():
+	int first = 8
+	int second = 4
+	print("%d\n", first + second) # 12
+	print("%d\n", first - second) # 4
+	print("%d\n", first * second) # 32
+	print("%d\n", first / second) # 2
+	print("%d\n", first % second) # 0
+	# TODO, find a better name for math::remainder()
+	
+	# '%' performs a modulo operation,
+	# for the remainder, use math::remainder()
+	
+	# There are also +=, -=, *=, /=, %= etc.,
+	# however no ++ or -- operators
+	
+	math::pow(first, 2) # 64
+	math::sqrt(second) # 2
+	
+	# TODO, should they be part of the math namespace?
+	print(PI, TAU, INF, NAN) # built-in constants
+
+
+# Control Flow
+func control_flow():
+	# TODO, deciding on specifics of type system
+
+	float x = 20
+	float y = 10
+
+	if x < y:
+		print("x is smaller than y")
+	elif x > y:
+		print("x is bigger than y")
+	else:
+		print("x and y are equal")
+
+	bool a = true
+	bool b = false
+	bool c = false
+	if a and b or not c: # alternatively you can use &&, || and !
+		print("This is true!")
+
+	# range is similar to what is found in Python and GDScript
+	for i in range(20):
+		print("%d\n", i) # print numbers from 0 to 19
+
+	for i in ["two", 3, 1.0]: # iterating over an array
+		print("%A\n", i)
+
+	while x > y:
+		print("%.2f\t%.2f\n", x, y)
+		y += 1
+
+	x = 2
+	y = 10
+	while x < y:
+		x += 1
+		if x == 6:
+			# 6 will not get printed because of continue
+			# statement
+			continue 
+
+		print("x is equal to: %.2f\n", x)
+
+		if x == 7:
+			# loop will break on 7, so 8, 9 and 10
+			# will not get printed
+			break 
+
+	# TODO, decide between match or switch statements
+
+	# ternary operator (one line if-else statement)
+	# TODO, decide on precendence of ternary operator
+	print("x is " + "positive" if x >= 0 else "negative")
+
+
+# Casting
+func casting_examples():
+	float a = 42 # implicit type casting
+	float b = 42 as float # same as this
+	float c = float::to(42) # which is a syntatic sugar for this
+
+
+# Recipes, Avalanche Classes
+
+# unlike classes in most programming languages, recipes can only be
+# assigned static functions. This is a way to improve on the the flow
+# of C while working with structures. You should not make a structure
+# do something, you should do something to a structure. They are
+# designed to hold in information and nothing more. Recipes can also
+# act as namespaces
+
+recipe FriendlyRecipe extends Base: # inherits the Base recipe
+                                    # implicit when omitted
+	int friends
+
+	func ask_about_friends_count(const ref FriendlyRecipe fr):
+		if fr.friends > 0:
+			print("I have %d lovely friend(s)!\n", fr.friends)
+		else:
+			print("I have no friends, but I'm working on it :)\n")
+
+func use_friendly_recipe():
+	FriendlyRecipe fr
+	fr.friends = 10
+	# prints "I have 10 lovely friend(s)!"
+	FriendlyRecipe::ask_about_friends_count(fr)
+
+
+# Allocation
+
+func get_copy(int i):
+	print("i is a copy.\n")
+
+func get_ref(ref int i):
+	print("i is a reference. Look, try to print i, now.\n")
+	i = FLIP_ME
+
+func get_const_ref(const ref int i):
+	print("Didn't like the trick of get_ref()? Use me!")
+	i = FLIP_ME # compile-time Error
+
+func allocation():
+	# stack allocation, automatically free when out of scope
+	int i             
+
+	# heap allocation, rpr holds a reference to a PoliteRecipe
+	# instance and gets garbage collected when the recipe
+	# instance has no owners
+	ref int ri        
+
+	# same as above, but the instance will never change state
+	const ref int cri
+
+	# Also valid for stack-allocated variables
+	const int ci
+
+	get_copy(i)   # valid
+	get_copy(ri)  # valid
+	get_copy(cri) # valid
+	get_copy(ci)  # valid
+
+
+	# invalid, passing by a reference of a stack allocated
+	# variable is not allowed
+	get_ref(i)
+
+	get_ref(ri) # valid
+
+	# invalid, the value of the constant reference will change
+	get_ref(cri)
+
+	# invalid, same reason as get_ref(i)
+	get_ref(ci)
+
+	get_const_ref(i)   # invalid
+	get_const_ref(ri)  # valid
+	get_const_ref(cri) # valid
+	get_const_ref(ci)  # invalid
+
+
+# Function Arguments
+
+recipe FunFuncExample:
+	# DefaultAutomatic initialization
+	# int, byte = 0
+	# float = 0.0
+	# bool = false
+	# str = ""
+	# *array = []
+
+	func default_args(str first_name = "stranger", str last_name):
+		print("Nice to meet you, %s %s\n", first_name, last_name)
+
+	# See example below
+	func key_args(int flag1, int flag2, int flag3):
+		print("%d %d %d", flag1, flag2, flag3)
+
+	# TODO, should I support this feature? The user could just slap this
+	# in an array
+	func rest_arg(.):
+		for i in _rest:
+			print("%A ", i)
+
+func fun_func_example():
+	# "Nice to meet you, stranger"
+	FunFuncExample::default_args()
+	# "0 0 99"
+	FunFuncExample::key_args(@flag3 99)
+	# "hello my name is joe ghost "
+	FunFuncExample::rest_arg("hello","my", "name", "is", "joe", "ghost")
+	# nothing
+	FunFuncExample::rest_arg()
+
+
+# Constructors and Destructors
+
+# Functions _init() and _free() are common within all recipes, even
+# when not defined, and they are called automatically when a recipe is
+# created or destroyed. The default C/Ds are empty, but they can be
+# overritten. They are the only functions allowing this. They are also
+# private, meaning that they cannot be called manually from outside
+# the class, and since all functions are static. This means that C/Ds
+# cannot be called at all, except when inside themselves. C/Ds are also
+# the only recipe functions to not be static, meaning that each
+# individual recipe is going to own a copy of the function that will
+# have different effects depending on the recipe instance
+
+recipe Person:
+	str name = "Mr. Default Name"
+	float age = PI
+
+	func _init(str name = "Mr. Default Name",
+		   float age = PI):
+		self.name = name
+		self.age = age
+
+	func _free():
+		print("Goodbye :(")
+		print("\n")
+
+
+func returns_nothing() -> void:
+	# imagine a dragon
+	return
+
+func join(str arg1, str arg2) -> str:
+	return arg1 + arg2
+
+func new_person() -> ref Person:
+	ref Person p("Aaron Franke", 23)
+	return p
