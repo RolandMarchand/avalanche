@@ -101,22 +101,22 @@ static void lump_add_code_niladic(struct lump *lmp, enum op_code code)
 static void lump_add_code_monadic(struct lump *lmp,
 				  enum op_code code, uint8_t val)
 {
-        if (lmp->count + 1 >= (lmp->size / sizeof(uint8_t)))
-                lump_grow(lmp);
+	if (lmp->count + 1 >= (lmp->size / sizeof(uint8_t)))
+		lump_grow(lmp);
 
-        lmp->array[lmp->count] = code;
-        lmp->array[lmp->count + 1] = val;
-        lmp->count += 2;
+	lmp->array[lmp->count] = code;
+	lmp->array[lmp->count + 1] = val;
+	lmp->count += 2;
 }
 
 static void lump_add_code_dyladic(struct lump *lmp,
 				  enum op_code code, uint16_t val)
 {
-        if (lmp->count + 2 >= (lmp->size / sizeof(uint8_t)))
-                lump_grow(lmp);
+	if (lmp->count + 2 >= (lmp->size / sizeof(uint8_t)))
+		lump_grow(lmp);
 
-        lmp->array[lmp->count] = code;
-        lmp->array[lmp->count + 1] = val >> 8;
-        lmp->array[lmp->count + 2] = val & 0x00FF;
-        lmp->count += 3;
+	lmp->array[lmp->count] = code;
+	lmp->array[lmp->count + 1] = val >> 8;
+	lmp->array[lmp->count + 2] = val & 0x00FF;
+	lmp->count += 3;
 }
