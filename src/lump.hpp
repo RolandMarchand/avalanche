@@ -34,7 +34,7 @@ struct lump {
 	uint8_t *array;
 	int size;
 	int count;
-	struct constant_vector::constant_vector *constants;
+	struct constant_vector *constants;
 
 	static struct lump *init();
 	static void free(struct lump *lmp);
