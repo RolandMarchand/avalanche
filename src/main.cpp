@@ -21,25 +21,26 @@
  * SUCH DAMAGE.
  */
 
-#include "vm.h"
-#include "debug/debug.h"
+#include "vm.hpp"
+#include "debug/debug.hpp"
+#include "lump.hpp"
 
 int main(int argc, char **argv)
 {
-	struct lump *l = lump_init();
-	lump_add_constant(l, 127);
-	lump_add_constant(l, 128);
-	lump_add_constant(l, 129);
-	lump_add_constant(l, 130);
-	lump_add_constant(l, 0x812b);
-	lump_add_code(l, OP_RETURN);
+	struct lump *l = lump::init();
+	lump::add_constant(l, 127);
+	lump::add_constant(l, 128);
+	lump::add_constant(l, 129);
+	lump::add_constant(l, 130);
+	lump::add_constant(l, 0x812b);
+	lump::add_code(l, op_code::RETURN);
 	for (int i = 0; i < 300; i++) {
 		if (i % 5 == 0)
-			lump_add_code(l, OP_LINE_INC);
-		lump_add_constant(l, i * 1.1);
+			lump::add_code(l, op_code::LINE_INC);
+		lump::add_constant(l, i * 1.1);
 	}
-	disassemble(l);
-	interpret(l);
-	lump_free(l);
+	disassembler::lump(l);
+	virtual_machine::interpret(l);
+	lump::free(l);
 	return 0;
 }

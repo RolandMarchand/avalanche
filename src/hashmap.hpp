@@ -23,17 +23,26 @@
 
 #pragma once
 
-#define CONSTANT_ARRAY_BUFFER_COUNT 8
+#include <math.h>
 
-struct constant_array {
-	double *array;
-	int size;
-	int count;
+struct hashmap {
+	static const int MAX_SIZE = 256;
+
+	enum error {
+		OK,
+		NOT_FOUND,
+		FULL
+	};
+
+	struct bucket {
+		char hash[36]; /* Size of NT hash */
+		double value;
+	};
+
+	struct bucket buckets[MAX_SIZE];
+
+	static struct hashmap init();
+	static enum error set(struct hashmap *hm, char *key, double value);
+	static double get(struct hashmap *hm, char *key);
+	static void remove(struct hashmap *hm, char *key);
 };
-
-/* Allocates a `constant_array` and returns its pointer. */
-struct constant_array *constant_array_init();
-/* Return the constant's index. */
-int constant_array_add(struct constant_array *ca, double value);
-/* Free the array and set `ca` to NULL. */
-void constant_array_free(struct constant_array *ca);

@@ -21,48 +21,11 @@
  * SUCH DAMAGE.
  */
 
-#include "constant.h"
-#include "src/macros.h"
+#pragma once
 
-#include <stdlib.h>
+#include "src/vm.hpp"
 
-static void constant_array_grow(struct constant_array *ca);
-
-struct constant_array *constant_array_init()
-{
-	struct constant_array *ca = malloc(sizeof(struct constant_array));
-
-	ASSERT(ca != NULL, "Unable to allocate memory for constant_array.");
-
-	ca->count = 0;
-	ca->size = CONSTANT_ARRAY_BUFFER_COUNT * sizeof(double);
-	ca->array = malloc(ca->size);
-
-	ASSERT(ca->array != NULL, "Unable to allocate memory for constant_array.");
-
-	return ca;
-}
-
-void constant_array_free(struct constant_array *ca)
-{
-	free(ca->array);
-	free(ca);
-	ca = NULL;
-}
-
-
-int constant_array_add(struct constant_array *ca, double d)
-{
-	if (ca->count == (ca->size / sizeof(double)))
-		constant_array_grow(ca);
-	ca->array[ca->count] = d;
-	return ca->count++;
-}
-
-static void constant_array_grow(struct constant_array *ca)
-{
-	ca->size += CONSTANT_ARRAY_BUFFER_COUNT * sizeof(double);
-	ca->array = realloc(ca->array, ca->size);
-
-	ASSERT(ca->array != NULL, "Unable to grow constant_array.");
+namespace disassembler {
+	void lump(struct lump *l);
+	void instruction(struct lump *lmp, int offset);
 }

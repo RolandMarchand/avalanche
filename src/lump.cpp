@@ -21,102 +21,97 @@
  * SUCH DAMAGE.
  */
 
-#include "lump.h"
-#include "constant.h"
-#include "src/macros.h"
+#include "lump.hpp"
+#include "constant.hpp"
+#include "src/macros.hpp"
 
 #include <stdlib.h>
 
-static void lump_grow(struct lump *lmp);
+static void grow(struct lump *lmp);
 /* Add a code to a lump that does not take arguments. */
-static void lump_add_code_niladic(struct lump *l,
-				  enum op_code code);
+static void add_code_niladic(struct lump *l, enum op_code code);
 /* Add a code to a lump that takes one byte argument. */
-static void lump_add_code_monadic(struct lump *l,
-				  enum op_code code, uint8_t val);
+static void add_code_monadic(struct lump *l, enum op_code code, uint8_t val);
 /* Add a code to a lump that takes two byte arguments. `val` is stored
  * as a big-endian sequence. */
-static void lump_add_code_dyladic(struct lump *l,
-				  enum op_code code, uint16_t val);
+static void add_code_dyladic(struct lump *l, enum op_code code, uint16_t val);
 
-struct lump *lump_init()
+struct lump *lump::init()
 {
-	struct lump *lmp = malloc(sizeof(struct lump));
+	struct lump *lmp = (struct lump *)malloc(sizeof(struct lump));
 
 	ASSERT(lmp != NULL, "Unable to allocate memory for lump.");
 
 	lmp->count = 0;
-	lmp->size = LUMP_BUFFER_COUNT * sizeof(uint8_t);
-	lmp->array = malloc(lmp->size);
-	lmp->constants = constant_array_init();
+	lmp->size = BUFFER_COUNT * sizeof(uint8_t);
+	lmp->array = (uint8_t *)malloc(lmp->size);
+	lmp->constants = constant_vector::init();
 
 	ASSERT(lmp->array != NULL, "Unable to allocate memory for lump.");
 
 	return lmp;
 }
 
-void lump_free(struct lump *lmp)
+void lump::free(struct lump *lmp)
 {
-	constant_array_free(lmp->constants);
-	free(lmp->array);
+	constant_vector::free(lmp->constants);
+	::free(lmp->array);
 	free(lmp);
 	lmp = NULL;
 }
 
-int lump_add_code(struct lump *lmp, enum op_code code)
+int lump::add_code(struct lump *lmp, enum op_code code)
 {
-	lump_add_code_niladic(lmp, code);
+	add_code_niladic(lmp, code);
 	return lmp->count - 1;
 }
 
-int lump_add_constant(struct lump *lmp, double d)
+int lump::add_constant(struct lump *lmp, double d)
 {
-	int offset = constant_array_add(lmp->constants, d);
+	int offset = constant_vector::add(lmp->constants, d);
 
 	if (offset < 1 << 8)
-		lump_add_code_monadic(lmp, OP_CONSTANT, offset);
+		add_code_monadic(lmp, op_code::CONSTANT, offset);
 	else
-		lump_add_code_dyladic(lmp, OP_CONSTANT_LONG, offset);
+		add_code_dyladic(lmp, op_code::CONSTANT_LONG, offset);
 
 	return offset;
 }
 
-static void lump_grow(struct lump *lmp)
+static void grow(struct lump *lmp)
 {
-	lmp->size += LUMP_BUFFER_COUNT * sizeof(uint8_t);
-	lmp->array = realloc(lmp->array, lmp->size);
+	lmp->size += lump::BUFFER_COUNT * sizeof(uint8_t);
+	lmp->array = (uint8_t *)realloc(lmp->array, lmp->size);
 
 	ASSERT(lmp->array != NULL, "Unable to grow lump.");
 }
 
-static void lump_add_code_niladic(struct lump *lmp, enum op_code code)
+static void add_code_niladic(struct lump *lmp, enum op_code code)
 {
 	if (lmp->count == (lmp->size / sizeof(uint8_t)))
-		lump_grow(lmp);
-	
+		grow(lmp);
+
 	lmp->array[lmp->count] = code;
 	lmp->count++;
 }
 
-static void lump_add_code_monadic(struct lump *lmp,
-				  enum op_code code, uint8_t val)
+static void add_code_monadic(struct lump *lmp, enum op_code code, uint8_t val)
 {
-        if (lmp->count + 1 >= (lmp->size / sizeof(uint8_t)))
-                lump_grow(lmp);
+	if (lmp->count + 1 >= (lmp->size / sizeof(uint8_t)))
+		grow(lmp);
 
-        lmp->array[lmp->count] = code;
-        lmp->array[lmp->count + 1] = val;
-        lmp->count += 2;
+	lmp->array[lmp->count] = code;
+	lmp->array[lmp->count + 1] = val;
+	lmp->count += 2;
 }
 
-static void lump_add_code_dyladic(struct lump *lmp,
-				  enum op_code code, uint16_t val)
+static void add_code_dyladic(struct lump *lmp, enum op_code code, uint16_t val)
 {
-        if (lmp->count + 2 >= (lmp->size / sizeof(uint8_t)))
-                lump_grow(lmp);
+	if (lmp->count + 2 >= (lmp->size / sizeof(uint8_t)))
+		grow(lmp);
 
-        lmp->array[lmp->count] = code;
-        lmp->array[lmp->count + 1] = val >> 8;
-        lmp->array[lmp->count + 2] = val & 0x00FF;
-        lmp->count += 3;
+	lmp->array[lmp->count] = code;
+	lmp->array[lmp->count + 1] = val >> 8;
+	lmp->array[lmp->count + 2] = val & 0x00FF;
+	lmp->count += 3;
 }

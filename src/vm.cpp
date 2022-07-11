@@ -21,26 +21,46 @@
  * SUCH DAMAGE.
  */
 
-#pragma once
+#include "vm.hpp"
+#include "debug/debug.hpp"
 
-#include "opcode.h"
-#include "constant.h"
+#include <stdio.h>
 
-#include <stdint.h>
+static struct virtual_machine vm;
+static enum virtual_machine::result run();
 
-struct lump {
-	uint8_t *array;
-	int size;
-	int count;
-	struct constant_array *constants;
-};
+enum virtual_machine::result virtual_machine::interpret(struct lump *lmp)
+{
+	vm.lump = lmp;
+	vm.pc = lmp->array;
+	return run();
+}
 
-#define LUMP_BUFFER_COUNT 8
+static enum virtual_machine::result run()
+{
+#define READ_BYTE() (*vm.pc++)
 
-struct lump *lump_init();
-void lump_free(struct lump *lmp);
-
-/* Return the code's offset. */
-int lump_add_code(struct lump *lmp, enum op_code code);
-/* Return the constant's offset. */
-int lump_add_constant(struct lump *lmp, double value);
+	while (1) {
+#ifdef DEBUG_TRACE_EXECUTION
+		disassemble_instruction(vm.lump, (int)(vm.pc - vm.lump->array));
+#endif
+		uint8_t instruction;
+		switch (instruction = READ_BYTE()) {
+		case op_code::RETURN:
+			return virtual_machine::OK;
+		case op_code::CONSTANT:
+			printf("%f\n", vm.lump->constants->array[READ_BYTE()]);
+			break;
+		case op_code::CONSTANT_LONG: {
+			uint8_t byte1 = READ_BYTE();
+			uint8_t byte2 = READ_BYTE();
+			printf("%f\n", vm.lump->constants->array[byte1 << 8 | byte2]);
+			break;
+		}
+		default:
+			break;
+		}
+	}
+	
+#undef READ_BYTE
+}

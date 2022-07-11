@@ -13,17 +13,17 @@ float g = .3 # ERROR, not allowed!
 bool b = true
 str s = "Hello World!"
 array a = [1, false, "brown fox"] # an array, similar to list in Python
-                                  # or in GDScript. it can hold
-                                  # different types of variables at once
+				  # or in GDScript. it can hold
+				  # different types of variables at once
 
 # map holds key-value pairs
-map d = { 
+map d = {
 	"key" : "value",
 	42 : true
-} 
+}
 
 # pool arrays can only hold one type
-str_array s_arr = ["Hi", "there", "!"] 
+str_array s_arr = ["Hi", "there", "!"]
 
 
 # Constants
@@ -68,16 +68,16 @@ func doing_math():
 	print("%d\n", first / second) # 2
 	print("%d\n", first % second) # 0
 	# TODO, find a better name for math::remainder()
-	
+
 	# '%' performs a modulo operation,
 	# for the remainder, use math::remainder()
-	
+
 	# There are also +=, -=, *=, /=, %= etc.,
 	# however no ++ or -- operators
-	
+
 	math::pow(first, 2) # 64
 	math::sqrt(second) # 2
-	
+
 	# TODO, should they be part of the math namespace?
 	print(PI, TAU, INF, NAN) # built-in constants
 
@@ -120,14 +120,14 @@ func control_flow():
 		if x == 6:
 			# 6 will not get printed because of continue
 			# statement
-			continue 
+			continue
 
 		print("x is equal to: %.2f\n", x)
 
 		if x == 7:
 			# loop will break on 7, so 8, 9 and 10
 			# will not get printed
-			break 
+			break
 
 	# TODO, decide between match or switch statements
 
@@ -152,8 +152,7 @@ func casting_examples():
 # designed to hold in information and nothing more. Recipes can also
 # act as namespaces
 
-recipe FriendlyRecipe extends Base: # inherits the Base recipe
-                                    # implicit when omitted
+recipe FriendlyRecipe
 	int friends
 
 	func ask_about_friends_count(const ref FriendlyRecipe fr):
@@ -184,12 +183,12 @@ func get_const_ref(const ref int i):
 
 func allocation():
 	# stack allocation, automatically free when out of scope
-	int i             
+	int i
 
 	# heap allocation, rpr holds a reference to a PoliteRecipe
 	# instance and gets garbage collected when the recipe
 	# instance has no owners
-	ref int ri        
+	ref int ri
 
 	# same as above, but the instance will never change state
 	const ref int cri

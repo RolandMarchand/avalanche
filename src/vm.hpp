@@ -23,22 +23,20 @@
 
 #pragma once
 
-#include "opcode.h"
-#include "lump.h"
+#include "opcode.hpp"
+#include "lump.hpp"
 
 #include <stdint.h>
 
-struct vm {
+struct virtual_machine {
 	struct lump *lump;
 	uint8_t *pc;
-};
 
-enum interpret_result {
-	INTERPRET_OK,
-	INTERPRET_COMPILE_ERROR,
-	INTERPRET_RUNTIME_ERROR
-};
+	enum result {
+		OK,
+		COMPILE_ERROR,
+		RUNTIME_ERROR
+	};
 
-/* void vm_init(); */
-/* void vm_free(); */
-enum interpret_result interpret(struct lump *lmp);
+	static enum result interpret(struct lump::lump *lmp);
+};

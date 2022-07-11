@@ -23,7 +23,17 @@
 
 #pragma once
 
-#include "src/vm.h"
+struct constant_vector {
+	static const int BUFFER_COUNT = 8;
 
-void disassemble(struct lump *l);
-void disassemble_instruction(struct lump *lmp, int offset);
+	double *array;
+	int size;
+	int count;
+
+	/* Allocates a `constant_vector` and returns its pointer. */
+	static struct constant_vector *init();
+	/* Return the constant's index. */
+	static int add(struct constant_vector *ca, double value);
+	/* Free the array and set `ca` to NULL. */
+	static void free(struct constant_vector *ca);
+};

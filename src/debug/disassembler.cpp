@@ -21,7 +21,7 @@
  * SUCH DAMAGE.
  */
 
-#include "disassembler.h"
+#include "disassembler.hpp"
 
 #include <stdio.h>
 
@@ -29,7 +29,7 @@ static void print_code(struct lump *lmp, int *offset, int *line);
 static void print_op_constant(struct lump *lmp, int *offset);
 static void print_op_constant_long(struct lump *lmp, int *offset);
 
-void disassemble(struct lump *lmp)
+void disassembler::lump(struct lump *lmp)
 {
 	int cur_line = 0, prev_line = -1;
 	for (int offset = 0; offset < lmp->count; offset++) {
@@ -46,13 +46,13 @@ void disassemble(struct lump *lmp)
 	}
 }
 
-void disassemble_instruction(struct lump *lmp, int offset)
+void disassembler::instruction(struct lump *lmp, int offset)
 {
 	/* TODO, fill up a static table to avoid reading the whole
 	 * code array every function call. */
 	int line = 0;
 	for(int i = 0; i < offset; i++) {
-		if (lmp->array[i] == OP_LINE_INC)
+		if (lmp->array[i] == op_code::LINE_INC)
 			line++;
 	}
 
@@ -63,23 +63,23 @@ static void print_code(struct lump *lmp, int *offset, int *line)
 {
 	switch(lmp->array[*offset]) {
 		/* The next byte is the constant's address. */
-	case OP_CONSTANT:
+	case op_code::CONSTANT:
 		print_op_constant(lmp, offset);
 		*offset += 1;
 		break;
 
 	/* The next two bytes make up the constant's address. */
-	case OP_CONSTANT_LONG:
+	case op_code::CONSTANT_LONG:
 		print_op_constant_long(lmp, offset);
 		*offset += 2;
 		break;
 
-	case OP_RETURN:
-		printf("OP_RETURN\n");
+	case op_code::RETURN:
+		printf("RETURN\n");
 		break;
 
-	case OP_LINE_INC:
-		printf("OP_LINE_INC\n");
+	case op_code::LINE_INC:
+		printf("LINE_INC\n");
 		(*line)++;
 		break;
 
@@ -105,7 +105,7 @@ static void print_op_constant_long(struct lump *lmp, int *offset)
 	int const_offset = byte1 << 8 | byte2;
 
 	printf("%-16s %04d %g\n", \
-	       "OP_CONSTANT_LONG",
+	       "CONSTANT_LONG",
 	       const_offset,
 	       lmp->constants->array[const_offset]);
 }

@@ -21,46 +21,26 @@
  * SUCH DAMAGE.
  */
 
-#include "vm.h"
-#include "debug/debug.h"
+#pragma once
 
-#include <stdio.h>
+#include "opcode.hpp"
+#include "constant.hpp"
 
-static struct vm vm;
+#include <stdint.h>
 
-static enum interpret_result run();
+struct lump {
+	static const uint8_t BUFFER_COUNT = 8;
 
-enum interpret_result interpret(struct lump *lmp) {
-	vm.lump = lmp;
-	vm.pc = lmp->array;
-	return run();
-}
+	uint8_t *array;
+	int size;
+	int count;
+	struct constant_vector::constant_vector *constants;
 
-static enum interpret_result run()
-{
-#define READ_BYTE() (*vm.pc++)
+	static struct lump *init();
+	static void free(struct lump *lmp);
 
-	while (1) {
-#ifdef DEBUG_TRACE_EXECUTION
-		disassemble_instruction(vm.lump, (int)(vm.pc - vm.lump->array));
-#endif
-		uint8_t instruction;
-		switch (instruction = READ_BYTE()) {
-		case OP_RETURN:
-			return INTERPRET_OK;
-		case OP_CONSTANT:
-			printf("%f\n", vm.lump->constants->array[READ_BYTE()]);
-			break;
-		case OP_CONSTANT_LONG: {
-			uint8_t byte1 = READ_BYTE();
-			uint8_t byte2 = READ_BYTE();
-			printf("%f\n", vm.lump->constants->array[byte1 << 8 | byte2]);
-			break;
-		}
-		default:
-			break;
-		}
-	}
-	
-#undef READ_BYTE
-}
+	/* Return the code's offset. */
+	static int add_code(struct lump *lmp, enum op_code code);
+	/* Return the constant's offset. */
+	static int add_constant(struct lump *lmp, double value);
+};
