@@ -8,8 +8,8 @@ uint ui = 23 # unsigned, cannot be negative
 sbyte ub = -100 # signed
 
 float f = 1.2 # all floats are doubles
-float g = .3 # ERROR, not allowed!
-float h = 10. # ERROR, not allowed either!
+#float g = .3 # ERROR, not allowed!
+#float h = 10. # ERROR, not allowed either!
 
 bool b = true
 str s = "Hello World!"
@@ -44,6 +44,21 @@ func foo():
 
 func add(int first, int second) -> int: # return type
 	return first + second
+
+# Arguments
+
+# Default Automatic initialization
+# int, byte = 0
+# float = 0.0
+# bool = false
+# str = ""
+# array = []
+func default_args(str first_name = "stranger", str last_name):
+	print("Nice to meet you, %s %s\n", first_name, last_name)
+
+func default_args_print():
+	# "Nice to meet you, stranger"
+	FunFuncExample::default_args()
 
 
 # Printing Values
@@ -218,68 +233,3 @@ func allocation():
 	get_const_ref(ri)  # valid
 	get_const_ref(cri) # valid
 	get_const_ref(ci)  # invalid
-
-
-# Function Arguments
-
-recipe FunFuncExample:
-	# DefaultAutomatic initialization
-	# int, byte = 0
-	# float = 0.0
-	# bool = false
-	# str = ""
-	# array = []
-
-	func default_args(str first_name = "stranger", str last_name):
-		print("Nice to meet you, %s %s\n", first_name, last_name)
-
-	# See example below
-	func key_args(int flag1, int flag2, int flag3):
-		print("%d %d %d", flag1, flag2, flag3)
-
-	# TODO, should I support this feature? The user could just slap this
-	# in an array
-	func rest_arg(.):
-		for i in _rest:
-			print("%A ", i)
-
-func fun_func_example():
-	# "Nice to meet you, stranger"
-	FunFuncExample::default_args()
-	# "0 0 99"
-	FunFuncExample::key_args(@flag3 99)
-	# "hello my name is joe ghost "
-	FunFuncExample::rest_arg("hello","my", "name", "is", "joe", "ghost")
-	# nothing
-	FunFuncExample::rest_arg()
-
-
-# Constructors and Destructors
-
-# Functions _init() and _free() are common within all recipes, even
-# when not defined, and they are called automatically when a recipe is
-# created or destroyed. The default C/Ds are empty, but they can be
-# overritten. They are the only functions allowing this. They are also
-# private, meaning that they cannot be called manually from outside
-# the class, and since all functions are static. This means that C/Ds
-# cannot be called at all, except when inside themselves. C/Ds are also
-# the only recipe functions to not be static, meaning that each
-# individual recipe is going to own a copy of the function that will
-# have different effects depending on the recipe instance
-
-recipe Person:
-	str name = "Mr. Default Name"
-	float age = PI
-
-	func _init(str name = "Mr. Default Name",
-		   float age = PI):
-		self.name = name
-		self.age = age
-
-	func _free():
-		print("Goodbye :(")
-		print("\n")
-
-func new_person() -> ref Person:
-	ref Person p("Aaron Franke", 23)
-	return p
