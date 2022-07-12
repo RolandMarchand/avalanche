@@ -4,6 +4,7 @@
 #include <crypt.h>
 #include <string.h>
 
+/* $3$ means to use the NT hash algorithm. */
 #define HASH(string) (crypt(string, "$3$"))
 #define GET_BUCKET(hashmap, index) (&hashmap->buckets[(index) % MAX_SIZE])
 #define IS_BUCKET_SET(bucket) (b->hash[0])
@@ -30,8 +31,10 @@ enum hashmap_error hashmap_set(struct hashmap *hm, char *key, double value)
 		struct bucket *b = GET_BUCKET(hm, idx + i);
 
 		if (IS_BUCKET_SET(b)) {
+			/* Check for hash collisions, continue if it's a different hash. */
 			if (strcmp(b->hash, hash) != 0) continue;
 		} else {
+			/* We have a new free bucket, so we set the key hash. */
 			strcpy(b->hash, hash);
 		}
 
@@ -50,7 +53,7 @@ double hashmap_get(struct hashmap *hm, char *key)
 	for (int i = 0; i < MAX_SIZE; i++) {
 		struct bucket *b = GET_BUCKET(hm, idx + i);
 
-                if (!IS_BUCKET_SET(b)) return NAN;
+		if (!IS_BUCKET_SET(b)) return NAN;
 		if (strcmp(b->hash, hash) == 0) return b->value;
 	}
 
@@ -83,7 +86,7 @@ static int hash2int(char *hash)
 	hash += 4;
 
 	int ret = 0;
-	for (int i = 0; i < sizeof(int); i++) {
+	for (size_t i = 0; i < sizeof(int); i++) {
 		ret <<= 8;
 		ret |= *hash;
 		hash++;
