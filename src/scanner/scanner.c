@@ -92,7 +92,6 @@ static void scan_tokens(struct token_vector *ta)
 	do {
 		start = current;
 		t = get_token();
-		printf("%d\n", t.type);
 		token_vector_add(ta, t);
 	} while (t.type != TOKEN_END_OF_FILE);
 }
@@ -123,6 +122,7 @@ static struct token get_token()
 	case '#':
 		advance();
 		while (current[0] != '\n' && current[0] != '\0') advance();
+		start = current;
 		return get_token();
 
 		/* one or two character tokens */

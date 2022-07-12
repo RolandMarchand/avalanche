@@ -22,7 +22,7 @@ add_library(_debug STATIC
 target_include_directories(_debug PUBLIC ./)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
 add_executable(avalanche src/main.c)
 target_link_libraries(avalanche PUBLIC scanner vm _debug)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")

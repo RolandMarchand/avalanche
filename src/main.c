@@ -28,8 +28,6 @@
 
 #include <stdio.h>
 
-
-
 int main(int argc, char **argv)
 {
 	ASSERT(argc == 2, "Usage: avalanche [source-file]");
@@ -38,8 +36,8 @@ int main(int argc, char **argv)
 #define CURRENT_TOKEN (s->tokens->array[i].type)
 #define CURRENT_LEXEME (&s->tokens->array[i].lexeme)
 	for (int i = 0; CURRENT_TOKEN != TOKEN_END_OF_FILE; i++) {
-		if (CURRENT_TOKEN == TOKEN_NEWLINE
-		    || CURRENT_TOKEN == TOKEN_TAB) continue;
+		/* if (CURRENT_TOKEN == TOKEN_NEWLINE */
+		/*     || CURRENT_TOKEN == TOKEN_TAB) continue; */
 
 		if (CURRENT_TOKEN == TOKEN_IDENTIFIER)
 			printf("ID: ");
