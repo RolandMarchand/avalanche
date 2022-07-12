@@ -22,6 +22,7 @@
  */
 
 #include "scanner.h"
+#include "src/macros.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,20 +41,38 @@
 #define IS_DIGIT(d) (d >= '0' && d <= '9')
 #define IS_ALPHA(c) ((c >= 'A' && c <= 'z') || c == '_')
 
+/* line counter */
 static int line = 1;
+/* start of the lexeme to be included in the next token
+ * reset at every token */
 static char *start = 0;
+/* pointer to current character of the source code */
 static char *current = 0;
+/* determines if the source file contains valid tokens */
 static char valid_input = 1;
 
+/* fill up `ta` with the tokens from the source file
+ * interface for `get_token()` */
 static void scan_tokens(struct token_vector *ta);
+/* get the next token, heart of the scanner */
 static struct token get_token();
+/* interface for advancing `current`
+ * return the character that was advanced */
 static char advance();
 
+/* return the next string and avance `current` */
 static struct token string();
+/* return the next digit and avance `current` */
 static struct token digit();
+/* return the next identifier or keyword and avance `current` */
 static struct token identifier();
-static enum token_type keywordcmp(int offset, const char* str, enum token_type t);
+/* trie to the lexeme and to return the right token */
 static enum token_type get_keyword_type(const char *str);
+/* compare the current lexeme with `str`, only used by `get_keyword_type()`
+ * supports sub-string comparisons for usage in a trie
+ * return the token_type `t` if there is a match
+ * return TOKEN_IDENTIFIER if there is no match */
+static enum token_type keywordcmp(int offset, const char* str, enum token_type t);
 
 struct scan *scan_init(const char *filename)
 {
@@ -63,16 +82,12 @@ struct scan *scan_init(const char *filename)
 
 	scan_tokens(ta);
 
-	if (!valid_input) exit(1);
+	ASSERT(valid_input, "Input has errors. Exiting.\n");
 
 	struct scan *s = malloc(sizeof(struct scan));
 
-	if (s == NULL) {
-		fprintf(stderr,
-			"Failed to allocate %zu bytes in scan_init.",
-			sizeof(struct scan));
-		exit(1);
-	}
+	ASSERT(s != NULL, "Failed to allocate %zu bytes in scan_init.",
+		sizeof(struct scan));
 
 	*s = (struct scan){.source = src, .tokens = ta};
 
@@ -130,7 +145,7 @@ static struct token get_token()
 		advance();
 		if (current[0] == '>') {
 			advance();
-			return GET_TOKEN(TOKEN_ARROW); 
+			return GET_TOKEN(TOKEN_ARROW);
 		}
 		return GET_TOKEN(TOKEN_MINUS);
 	case ':':
@@ -208,7 +223,7 @@ static char advance()
 static struct token string()
 {
 	/* used to print error message */
-	int line_begin = line; 
+	int line_begin = line;
 
 	while (current[0] != '"') {
 		if (current[0] == '\n') line++;
@@ -233,6 +248,7 @@ static struct token digit()
 
 	if (current[0] != '.') goto return_digit;
 
+	/* disallow defining a float as 'n.' */
 	if (!IS_DIGIT(current[1])) goto return_invalid;
 
 	while (IS_DIGIT(current[0])) advance();
@@ -242,8 +258,9 @@ return_digit:
 
 return_invalid:
 	fprintf(stderr,
-		"Expected %c at line %d to be a number after the '.'.",
-		current[1], line);
+		"Trailing period not allowed at line %d.\n",
+		line);
+	/* eat garbage input */
 	while (IS_ALPHA(current[0]) || IS_DIGIT(current[0])) advance();
 	return GET_TOKEN(TOKEN_INVALID);
 }
@@ -252,6 +269,7 @@ static struct token identifier()
 {
 	while (IS_ALPHA(current[0]) || IS_DIGIT(current[0])) advance();
 
+	/* substring to string */
 	struct substring *sbstr = &(struct substring){.start=start, .end=current};
 	char str[SUBSTRING_LENGTH(*sbstr)];
 	sbstrcpy(sbstr, str);
@@ -260,34 +278,21 @@ static struct token identifier()
 	return GET_TOKEN(t);
 }
 
-static enum token_type keywordcmp(int offset, const char* str, enum token_type t)
-{
-	struct substring *sbstr = &(struct substring){
-		.start = start,
-		.end = current
-	};
-	char s_sbstr[SUBSTRING_LENGTH(*sbstr)];
-	sbstrcpy(sbstr, s_sbstr);
-	
-	if (strcmp(s_sbstr + offset, str) == 0) return t;
-	return TOKEN_IDENTIFIER;
-}
-
-/* trie to the lexeme and to return the right token */
 static enum token_type get_keyword_type(const char *str) {
 	switch(str[0]) {
 	case 'a':
 		switch (str[1]) {
-		case 'n': return keywordcmp(2, "d", TOKEN_AND);
-		case 'r': return keywordcmp(2, "ray", TOKEN_ARRAY);
-		case 's': if (str[2] == '\0') return TOKEN_AS;
+		case 'n': return keywordcmp(2, "d", TOKEN_AND); /* and */
+		case 'r': return keywordcmp(2, "ray", TOKEN_ARRAY); /* array */
+		case 's': if (str[2] == '\0') return TOKEN_AS; /* as */
+			/* fall through */
 		default: return TOKEN_IDENTIFIER;
 		}
 	case 'b':
 		switch (str[1]) {
-		case 'o': return keywordcmp(2, "ol", TOKEN_BOOL);
-		case 'r': return keywordcmp(2, "eak", TOKEN_BREAK);
-		case 'y': return keywordcmp(2, "te", TOKEN_BYTE);
+		case 'o': return keywordcmp(2, "ol", TOKEN_BOOL); /* bool */
+		case 'r': return keywordcmp(2, "eak", TOKEN_BREAK); /* break */
+		case 'y': return keywordcmp(2, "te", TOKEN_BYTE); /* byte */
 		default: return TOKEN_IDENTIFIER;
 		}
 	case 'c':
@@ -295,59 +300,76 @@ static enum token_type get_keyword_type(const char *str) {
 		if (strncmp(start + 1, str + 1, 2) != 0) return TOKEN_IDENTIFIER;
 
 		switch (str[3]) {
-		case 's': return keywordcmp(4, "t", TOKEN_CONST);
-		case 't': return keywordcmp(4, "inue", TOKEN_CONTINUE);
+		case 's': return keywordcmp(4, "t", TOKEN_CONST); /* const */
+		case 't': return keywordcmp(4, "inue", TOKEN_CONTINUE); /* continue */
 		default: return TOKEN_IDENTIFIER;
 		}
 	case 'e':
 		switch (str[1]) {
-		case 'l': return keywordcmp(2, "se", TOKEN_ELSE);
-		case 'n': return keywordcmp(2, "um", TOKEN_ENUM);
+		case 'l': return keywordcmp(2, "se", TOKEN_ELSE); /* else */
+		case 'n': return keywordcmp(2, "um", TOKEN_ENUM); /* enum */
 		default: return TOKEN_IDENTIFIER;
 		}
 	case 'f':
 		switch (str[1]) {
-		case 'a': return keywordcmp(2, "lse", TOKEN_FALSE);
-		case 'l': return keywordcmp(2, "oat", TOKEN_FLOAT);
-		case 'u': return keywordcmp(2, "nc", TOKEN_FUNC);
+		case 'a': return keywordcmp(2, "lse", TOKEN_FALSE); /* false */
+		case 'l': return keywordcmp(2, "oat", TOKEN_FLOAT); /* float */
+		case 'u': return keywordcmp(2, "nc", TOKEN_FUNC); /* func */
 		default: return TOKEN_IDENTIFIER;
 		}
 	case 'i':
 		switch (str[1]) {
-		case 'n': return keywordcmp(2, "t", TOKEN_FUNC);
-		case 'f': if (str[2] == '\0') return TOKEN_IF;
+		case 'n': return keywordcmp(2, "t", TOKEN_FUNC); /* int */
+		case 'f': if (str[2] == '\0') return TOKEN_IF; /* if */
+			 /* fall through */
 		default: return TOKEN_IDENTIFIER;
 		}
-	case 'm': return keywordcmp(1, "ap", TOKEN_MAP);
-	case 'o': return keywordcmp(1, "r", TOKEN_OR);
+	case 'm': return keywordcmp(1, "ap", TOKEN_MAP); /* map */
+	case 'o': return keywordcmp(1, "r", TOKEN_OR);	 /* or */
 	case 'p':
 		switch (str[1]) {
-		case 'a': return keywordcmp(2, "ss", TOKEN_PASS);
+		case 'a': return keywordcmp(2, "ss", TOKEN_PASS); /* pass */
 		case 'r':
 			/* compare 'int' in 'print' and 'print_err' */
 			if (strncmp(start + 2, str + 2, 3) != 0) return TOKEN_IDENTIFIER;
-			if (str[5] == '\0') return TOKEN_PRINT;
-			return keywordcmp(5, "_err", TOKEN_PRINT_ERR);
+			if (str[5] == '\0') return TOKEN_PRINT; /* print */
+			return keywordcmp(5, "_err", TOKEN_PRINT_ERR); /* print_err */
 		default: return TOKEN_IDENTIFIER;
 		}
 	case 'r':
 		if (str[1] != 'e') return TOKEN_IDENTIFIER;
 		switch (str[2]) {
-		case 'c': return keywordcmp(3, "ipe", TOKEN_RECIPE);
-		case 't': return keywordcmp(3, "urn", TOKEN_RETURN);
-		case 'f': if (str[3] == '\0') return TOKEN_REF;
+		case 'c': return keywordcmp(3, "ipe", TOKEN_RECIPE); /* recipe */
+		case 't': return keywordcmp(3, "urn", TOKEN_RETURN); /* return */
+		case 'f': if (str[3] == '\0') return TOKEN_REF; /* ref */
+			/* fall through */
 		default: return TOKEN_IDENTIFIER;
 		}
 	case 's':
 		switch (str[1]) {
-		case 'b': return keywordcmp(2, "yte", TOKEN_BYTE);
-		case 't': return keywordcmp(2, "r", TOKEN_STR);
+		case 'b': return keywordcmp(2, "yte", TOKEN_BYTE); /* sbyte */
+		case 't': return keywordcmp(2, "r", TOKEN_STR); /* str */
 		default: return TOKEN_IDENTIFIER;
 		}
-	case 't': return keywordcmp(1, "rue", TOKEN_TRUE);
-	case 'u': return keywordcmp(1, "int", TOKEN_UINT);
-	case 'w': return keywordcmp(1, "hile", TOKEN_WHILE);
+	case 't': return keywordcmp(1, "rue", TOKEN_TRUE); /* true */
+	case 'u': return keywordcmp(1, "int", TOKEN_UINT); /* uint */
+	case 'w': return keywordcmp(1, "hile", TOKEN_WHILE); /* while */
 	default:
 		return TOKEN_IDENTIFIER;
 	}
+}
+
+static enum token_type keywordcmp(int offset, const char* str, enum token_type t)
+{
+	/* convert the current lexeme substring into a string able to
+	 * be compared by `strcmp()` */
+	struct substring *sbstr = &(struct substring){
+		.start = start,
+		.end = current
+	};
+	char s_sbstr[SUBSTRING_LENGTH(*sbstr)];
+	sbstrcpy(sbstr, s_sbstr);
+
+	if (strcmp(s_sbstr + offset, str) == 0) return t;
+	return TOKEN_IDENTIFIER;
 }
