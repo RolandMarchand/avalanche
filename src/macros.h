@@ -26,11 +26,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define ASSERT(expr, error)			\
-	{					\
-		if (!(expr)) {			\
-			fprintf(stderr, error);	\
-			fprintf(stderr, "\n");	\
-			exit(EXIT_FAILURE);	\
-		}				\
-	}
+#define ASSERT(expr, ...)				\
+	do {						\
+		if (!(expr)) {				\
+			fprintf(stderr, __VA_ARGS__);	\
+			fprintf(stderr, "\n");		\
+			exit(EXIT_FAILURE);		\
+		}					\
+	} while(0)
