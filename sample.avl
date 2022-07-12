@@ -3,12 +3,13 @@
 
 # Member Variables
 int x = 8
-byte y = 127 # holds one byte of signed data
+byte y = 255 # holds one byte of unsigned data
 uint ui = 23 # unsigned, cannot be negative
-ubyte ub = 255
+sbyte ub = -100 # signed
 
 float f = 1.2 # all floats are doubles
 float g = .3 # ERROR, not allowed!
+float h = 10. # ERROR, not allowed either!
 
 bool b = true
 str s = "Hello World!"
@@ -16,14 +17,14 @@ array a = [1, false, "brown fox"] # an array, similar to list in Python
                                   # or in GDScript. it can hold
                                   # different types of variables at once
 
+# pool arrays can only hold one type
+array::str s_arr = ["Hi", "there", "!"] 
+
 # map holds key-value pairs
 map d = { 
 	"key" : "value",
 	42 : true
 } 
-
-# pool arrays can only hold one type
-str_array s_arr = ["Hi", "there", "!"] 
 
 
 # Constants
@@ -32,8 +33,8 @@ const bool IS_IT_DUCK_TIME = true
 
 
 # Enums
-enum { ZERO, ONE , TWO, THREE }
-enum NamedEnum { ONE = 1, TWO, THREE }
+enum { ZERO, ONE , TWO, THREE } # global scope
+enum NamedEnum { ONE = 1, TWO, THREE } # namedenum scope
 
 
 # Functions
@@ -152,8 +153,7 @@ func casting_examples():
 # designed to hold in information and nothing more. Recipes can also
 # act as namespaces
 
-recipe FriendlyRecipe extends Base: # inherits the Base recipe
-                                    # implicit when omitted
+recipe FriendlyRecipe
 	int friends
 
 	func ask_about_friends_count(const ref FriendlyRecipe fr):
