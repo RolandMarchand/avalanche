@@ -23,7 +23,8 @@
 
 #pragma once
 
-#define SUBSTRING_LENGTH(sbstr) ((int)((sbstr).end - (sbstr).start))
+/* include the null terminator */
+#define SUBSTRING_LENGTH(sbstr) (((int)((sbstr).end - (sbstr).start)) + 1)
 
 struct substring {
 	char *start;

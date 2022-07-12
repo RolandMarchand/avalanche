@@ -23,23 +23,50 @@
 
 #include "vm.h"
 #include "debug/debug.h"
+#include "scanner/scanner.h"
+#include "macros.h"
+
+#include <stdio.h>
+
+
 
 int main(int argc, char **argv)
 {
-	struct lump *l = lump_init();
-	lump_add_constant(l, 127);
-	lump_add_constant(l, 128);
-	lump_add_constant(l, 129);
-	lump_add_constant(l, 130);
-	lump_add_constant(l, 0x812b);
-	lump_add_code(l, OP_RETURN);
-	for (int i = 0; i < 300; i++) {
-		if (i % 5 == 0)
-			lump_add_code(l, OP_LINE_INC);
-		lump_add_constant(l, i * 1.1);
+	ASSERT(argc == 2, "Usage: avalanche [source-file]");
+	struct scan *s = scan_init(argv[1]);
+
+#define CURRENT_TOKEN (s->tokens->array[i].type)
+#define CURRENT_LEXEME (&s->tokens->array[i].lexeme)
+	for (int i = 0; CURRENT_TOKEN != TOKEN_END_OF_FILE; i++) {
+		if (CURRENT_TOKEN == TOKEN_NEWLINE
+		    || CURRENT_TOKEN == TOKEN_TAB) continue;
+
+		if (CURRENT_TOKEN == TOKEN_IDENTIFIER)
+			printf("ID: ");
+		char str[1024];
+		sbstrcpy(CURRENT_LEXEME, str);
+		printf("%s\n", str);
 	}
-	disassemble(l);
-	interpret(l);
-	lump_free(l);
-	return 0;
+#undef CURRENT_TOKEN
+#undef CURRENT_LEXEME
+	scan_del(s);
 }
+
+
+
+	/* struct lump *l = lump_init(); */
+	/* lump_add_constant(l, 127); */
+	/* lump_add_constant(l, 128); */
+	/* lump_add_constant(l, 129); */
+	/* lump_add_constant(l, 130); */
+	/* lump_add_constant(l, 0x812b); */
+	/* lump_add_code(l, OP_RETURN); */
+	/* for (int i = 0; i < 300; i++) { */
+	/* 	if (i % 5 == 0) */
+	/* 		lump_add_code(l, OP_LINE_INC); */
+	/* 	lump_add_constant(l, i * 1.1); */
+	/* } */
+	/* disassemble(l); */
+	/* interpret(l); */
+	/* lump_free(l); */
+	/* return 0; */

@@ -27,7 +27,6 @@
 
 void sbstrcpy(const struct substring *from, char *to)
 {
-	int s = SUBSTRING_LENGTH(*from);
-	strncpy(to, from->start, s);
-	to[SUBSTRING_LENGTH(*from)] = '\0';
+	strncpy(to, from->start, SUBSTRING_LENGTH(*from) - 1);
+	to[SUBSTRING_LENGTH(*from) - 1] = '\0';
 }

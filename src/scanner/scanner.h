@@ -46,7 +46,7 @@
  * Substrings are composed of two char pointers `start` and `end`
  * pointing to a section of a string. You can use `sbstrcpy` to
  * write the contents of a substring in a user-defined character array
- * of size `SUBSTRING_LENGTH(sbstr) + 1`. There is a
+ * of size `SUBSTRING_LENGTH(sbstr)`. There is a
  * `PRINT_SUBSTRING(sbstr)` macro, to print the substring to STDOUT.
  */
 

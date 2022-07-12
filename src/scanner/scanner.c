@@ -27,8 +27,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define GET_TOKEN(KEYWORD) (struct token)		\
-	{						\
+#define GET_TOKEN(KEYWORD)				\
+	(struct token){					\
 		.type = KEYWORD,			\
 			.lexeme = (struct substring)	\
 			{				\
@@ -40,7 +40,7 @@
 #define IS_DIGIT(d) (d >= '0' && d <= '9')
 #define IS_ALPHA(c) ((c >= 'A' && c <= 'z') || c == '_')
 
-static int line = 0;
+static int line = 1;
 static char *start = 0;
 static char *current = 0;
 static char valid_input = 1;
@@ -52,8 +52,8 @@ static char advance();
 static struct token string();
 static struct token digit();
 static struct token identifier();
-
-enum token_type get_keyword_type(const char *str);
+static enum token_type keywordcmp(int offset, const char* str, enum token_type t);
+static enum token_type get_keyword_type(const char *str);
 
 struct scan *scan_init(const char *filename)
 {
@@ -88,11 +88,13 @@ void scan_del(struct scan *s)
 
 static void scan_tokens(struct token_vector *ta)
 {
-	while(current[0] != '\0') {
+	struct token t;
+	do {
 		start = current;
-		struct token t = get_token();
+		t = get_token();
+		printf("%d\n", t.type);
 		token_vector_add(ta, t);
-	}
+	} while (t.type != TOKEN_END_OF_FILE);
 }
 
 static struct token get_token()
@@ -109,13 +111,14 @@ static struct token get_token()
 	case '.': advance(); return GET_TOKEN(TOKEN_DOT);
 	case '+': advance(); return GET_TOKEN(TOKEN_PLUS);
 	case '*': advance(); return GET_TOKEN(TOKEN_STAR);
+	case '%': advance(); return GET_TOKEN(TOKEN_MODULO);
 	case '/': advance(); return GET_TOKEN(TOKEN_SLASH);
+	case '\t': advance(); return GET_TOKEN(TOKEN_TAB);
 	case '\0': return GET_TOKEN(TOKEN_END_OF_FILE);
 	case '\n':
 		line++;
+		advance();
 		return GET_TOKEN(TOKEN_NEWLINE);
-	case '\t':
-		return GET_TOKEN(TOKEN_TAB);
 		/* Comment */
 	case '#':
 		advance();
@@ -182,11 +185,13 @@ static struct token get_token()
 		if (IS_DIGIT(current[0])) return digit();
 		if (IS_ALPHA(current[0])) return identifier();
 
+		fprintf(stderr,
+			"Unexpected character %c at line %d.\n",
+			current[0], line);
+
 		/* invalid */
 		valid_input = 0;
-		fprintf(stderr,
-			"Unexpected character %c at line %d",
-			current[0], line);
+		advance();
 		return GET_TOKEN(TOKEN_INVALID);
 	}
 }
@@ -248,35 +253,101 @@ static struct token identifier()
 	while (IS_ALPHA(current[0]) || IS_DIGIT(current[0])) advance();
 
 	struct substring *sbstr = &(struct substring){.start=start, .end=current};
-	int s = SUBSTRING_LENGTH((*sbstr)) + 1; /* +1 for '\0' */
-	char str[s];
+	char str[SUBSTRING_LENGTH(*sbstr)];
 	sbstrcpy(sbstr, str);
 
 	enum token_type t = get_keyword_type(str);
 	return GET_TOKEN(t);
 }
 
-/* TODO: Replace this with a hash table */
-enum token_type get_keyword_type(const char *str)
+static enum token_type keywordcmp(int offset, const char* str, enum token_type t)
 {
-#define GET(kwstr, tk) if (strcmp(str, kwstr) == 0) return tk;
-
-	/* GET("blueprint", TOKEN_BLUEPRINT); */
-	/* GET("con", TOKEN_CON); */
-	/* GET("dis", TOKEN_DIS); */
-	/* GET("else", TOKEN_ELSE); */
-	/* GET("fluid", TOKEN_FLUID); */
-	/* GET("if", TOKEN_IF); */
-	/* GET("me", TOKEN_ME); */
-	/* GET("nil", TOKEN_NIL); */
-	/* GET("no", TOKEN_NO); */
-	/* GET("procedure", TOKEN_PROCEDURE); */
-	/* GET("produce", TOKEN_PRODUCE); */
-	/* GET("solid", TOKEN_SOLID); */
-	/* GET("while", TOKEN_WHILE); */
-	/* GET("write", TOKEN_WRITE); */
-	/* GET("yes", TOKEN_YES); */
-
+	struct substring *sbstr = &(struct substring){
+		.start = start,
+		.end = current
+	};
+	char s_sbstr[SUBSTRING_LENGTH(*sbstr)];
+	sbstrcpy(sbstr, s_sbstr);
+	
+	if (strcmp(s_sbstr + offset, str) == 0) return t;
 	return TOKEN_IDENTIFIER;
-#undef GET
+}
+
+/* trie to the lexeme and to return the right token */
+static enum token_type get_keyword_type(const char *str) {
+	switch(str[0]) {
+	case 'a':
+		switch (str[1]) {
+		case 'n': return keywordcmp(2, "d", TOKEN_AND);
+		case 'r': return keywordcmp(2, "ray", TOKEN_ARRAY);
+		case 's': if (str[2] == '\0') return TOKEN_AS;
+		default: return TOKEN_IDENTIFIER;
+		}
+	case 'b':
+		switch (str[1]) {
+		case 'o': return keywordcmp(2, "ol", TOKEN_BOOL);
+		case 'r': return keywordcmp(2, "eak", TOKEN_BREAK);
+		case 'y': return keywordcmp(2, "te", TOKEN_BYTE);
+		default: return TOKEN_IDENTIFIER;
+		}
+	case 'c':
+		/* compare 'on' in 'const' and 'continue' */
+		if (strncmp(start + 1, str + 1, 2) != 0) return TOKEN_IDENTIFIER;
+
+		switch (str[3]) {
+		case 's': return keywordcmp(4, "t", TOKEN_CONST);
+		case 't': return keywordcmp(4, "inue", TOKEN_CONTINUE);
+		default: return TOKEN_IDENTIFIER;
+		}
+	case 'e':
+		switch (str[1]) {
+		case 'l': return keywordcmp(2, "se", TOKEN_ELSE);
+		case 'n': return keywordcmp(2, "um", TOKEN_ENUM);
+		default: return TOKEN_IDENTIFIER;
+		}
+	case 'f':
+		switch (str[1]) {
+		case 'a': return keywordcmp(2, "lse", TOKEN_FALSE);
+		case 'l': return keywordcmp(2, "oat", TOKEN_FLOAT);
+		case 'u': return keywordcmp(2, "nc", TOKEN_FUNC);
+		default: return TOKEN_IDENTIFIER;
+		}
+	case 'i':
+		switch (str[1]) {
+		case 'n': return keywordcmp(2, "t", TOKEN_FUNC);
+		case 'f': if (str[2] == '\0') return TOKEN_IF;
+		default: return TOKEN_IDENTIFIER;
+		}
+	case 'm': return keywordcmp(1, "ap", TOKEN_MAP);
+	case 'o': return keywordcmp(1, "r", TOKEN_OR);
+	case 'p':
+		switch (str[1]) {
+		case 'a': return keywordcmp(2, "ss", TOKEN_PASS);
+		case 'r':
+			/* compare 'int' in 'print' and 'print_err' */
+			if (strncmp(start + 2, str + 2, 3) != 0) return TOKEN_IDENTIFIER;
+			if (str[5] == '\0') return TOKEN_PRINT;
+			return keywordcmp(5, "_err", TOKEN_PRINT_ERR);
+		default: return TOKEN_IDENTIFIER;
+		}
+	case 'r':
+		if (str[1] != 'e') return TOKEN_IDENTIFIER;
+		switch (str[2]) {
+		case 'c': return keywordcmp(3, "ipe", TOKEN_RECIPE);
+		case 't': return keywordcmp(3, "urn", TOKEN_RETURN);
+		case 'f': if (str[3] == '\0') return TOKEN_REF;
+		default: return TOKEN_IDENTIFIER;
+		}
+	case 's':
+		switch (str[1]) {
+		case 'b': return keywordcmp(2, "yte", TOKEN_BYTE);
+		case 't': return keywordcmp(2, "r", TOKEN_STR);
+		default: return TOKEN_IDENTIFIER;
+		}
+	case 't': return keywordcmp(1, "rue", TOKEN_TRUE);
+	case 'u': return keywordcmp(1, "int", TOKEN_UINT);
+	case 'w': return keywordcmp(1, "hile", TOKEN_WHILE);
+	default:
+		return TOKEN_IDENTIFIER;
+	}
 }
