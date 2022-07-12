@@ -1,5 +1,5 @@
 # Single-line comments are written using a semicolon
-
+# TIP: read this file with python formatting
 
 # Member Variables
 int x = 8
@@ -79,8 +79,7 @@ func doing_math():
 	math::pow(first, 2) # 64
 	math::sqrt(second) # 2
 	
-	# TODO, should they be part of the math namespace?
-	print(PI, TAU, INF, NAN) # built-in constants
+	print(math::PI, math::TAU, math::INF, math::NAN) # built-in constants
 
 
 # Control Flow
@@ -229,7 +228,7 @@ recipe FunFuncExample:
 	# float = 0.0
 	# bool = false
 	# str = ""
-	# *array = []
+	# array = []
 
 	func default_args(str first_name = "stranger", str last_name):
 		print("Nice to meet you, %s %s\n", first_name, last_name)
@@ -280,14 +279,6 @@ recipe Person:
 	func _free():
 		print("Goodbye :(")
 		print("\n")
-
-
-func returns_nothing() -> void:
-	# imagine a dragon
-	return
-
-func join(str arg1, str arg2) -> str:
-	return arg1 + arg2
 
 func new_person() -> ref Person:
 	ref Person p("Aaron Franke", 23)

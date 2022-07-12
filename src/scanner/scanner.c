@@ -103,20 +103,40 @@ static struct token get_token()
 	case ')': advance(); return GET_TOKEN(TOKEN_RIGHT_PAREN);
 	case '{': advance(); return GET_TOKEN(TOKEN_LEFT_BRACE);
 	case '}': advance(); return GET_TOKEN(TOKEN_RIGHT_PAREN);
+	case '[': advance(); return GET_TOKEN(TOKEN_LEFT_SQUARE);
+	case ']': advance(); return GET_TOKEN(TOKEN_RIGHT_SQUARE);
 	case ',': advance(); return GET_TOKEN(TOKEN_COMMA);
 	case '.': advance(); return GET_TOKEN(TOKEN_DOT);
-	case '-': advance(); return GET_TOKEN(TOKEN_MINUS);
 	case '+': advance(); return GET_TOKEN(TOKEN_PLUS);
-	case ';': advance(); return GET_TOKEN(TOKEN_SEMICOLON);
 	case '*': advance(); return GET_TOKEN(TOKEN_STAR);
 	case '/': advance(); return GET_TOKEN(TOKEN_SLASH);
 	case '\0': return GET_TOKEN(TOKEN_END_OF_FILE);
+	case '\n':
+		line++;
+		return GET_TOKEN(TOKEN_NEWLINE);
+	case '\t':
+		return GET_TOKEN(TOKEN_TAB);
+		/* Comment */
 	case '#':
 		advance();
 		while (current[0] != '\n' && current[0] != '\0') advance();
 		return get_token();
 
 		/* one or two character tokens */
+	case '-':
+		advance();
+		if (current[0] == '>') {
+			advance();
+			return GET_TOKEN(TOKEN_ARROW); 
+		}
+		return GET_TOKEN(TOKEN_MINUS);
+	case ':':
+		advance();
+		if (current[0] == ':') {
+			advance();
+			return GET_TOKEN(TOKEN_COLON_COLON);
+		}
+		return GET_TOKEN(TOKEN_COLON);
 	case '!':
 		advance();
 		if (current[0] == '=') {
@@ -147,10 +167,7 @@ static struct token get_token()
 		return GET_TOKEN(TOKEN_LESS);
 
 		/* ignored */
-	case '\n':
-		line++;
 	case ' ':
-	case '\t':
 	case '\f':
 	case '\v':
 	case '\r':
@@ -244,21 +261,21 @@ enum token_type get_keyword_type(const char *str)
 {
 #define GET(kwstr, tk) if (strcmp(str, kwstr) == 0) return tk;
 
-	GET("blueprint", TOKEN_BLUEPRINT);
-	GET("con", TOKEN_CON);
-	GET("dis", TOKEN_DIS);
-	GET("else", TOKEN_ELSE);
-	GET("fluid", TOKEN_FLUID);
-	GET("if", TOKEN_IF);
-	GET("me", TOKEN_ME);
-	GET("nil", TOKEN_NIL);
-	GET("no", TOKEN_NO);
-	GET("procedure", TOKEN_PROCEDURE);
-	GET("produce", TOKEN_PRODUCE);
-	GET("solid", TOKEN_SOLID);
-	GET("while", TOKEN_WHILE);
-	GET("write", TOKEN_WRITE);
-	GET("yes", TOKEN_YES);
+	/* GET("blueprint", TOKEN_BLUEPRINT); */
+	/* GET("con", TOKEN_CON); */
+	/* GET("dis", TOKEN_DIS); */
+	/* GET("else", TOKEN_ELSE); */
+	/* GET("fluid", TOKEN_FLUID); */
+	/* GET("if", TOKEN_IF); */
+	/* GET("me", TOKEN_ME); */
+	/* GET("nil", TOKEN_NIL); */
+	/* GET("no", TOKEN_NO); */
+	/* GET("procedure", TOKEN_PROCEDURE); */
+	/* GET("produce", TOKEN_PRODUCE); */
+	/* GET("solid", TOKEN_SOLID); */
+	/* GET("while", TOKEN_WHILE); */
+	/* GET("write", TOKEN_WRITE); */
+	/* GET("yes", TOKEN_YES); */
 
 	return TOKEN_IDENTIFIER;
 #undef GET
