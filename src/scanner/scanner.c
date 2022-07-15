@@ -33,23 +33,32 @@
 		.type = KEYWORD,			\
 			.lexeme = (struct substring)	\
 			{				\
-				.start = start,		\
-				.end = current		\
+				.start = scanner.start,	\
+				.end = scanner.current	\
 			},				\
-			.line = line			\
+			.line = scanner.line		\
 			}
 #define IS_DIGIT(d) (d >= '0' && d <= '9')
 #define IS_ALPHA(c) ((c >= 'A' && c <= 'z') || c == '_')
 
-/* line counter */
-static int line = 1;
-/* start of the lexeme to be included in the next token
- * reset at every token */
-static char *start = 0;
-/* pointer to current character of the source code */
-static char *current = 0;
-/* determines if the source file contains valid tokens */
-static char valid_input = 1;
+struct scanner {
+	/* start of the lexeme to be included in the next token
+	 * reset at every token */
+	char *start;
+	/* pointer to current character of the source code */
+	char *current;
+	/* determines if the source file contains valid tokens */
+	char valid_input;
+	/* line counter */
+	int line;
+};
+
+static struct scanner scanner = (struct scanner){
+	.start = 0,
+	.current = 0,
+	.line = 0,
+	.valid_input = 1
+};
 
 /* fill up `ta` with the tokens from the source file
  * interface for `get_token()` */
@@ -62,9 +71,9 @@ static char advance();
 
 /* return the next string and avance `current` */
 static struct token string();
-/* return the next digit and avance `current` */
+/* return the next digit and avance `scanner.current` */
 static struct token digit();
-/* return the next identifier or keyword and avance `current` */
+/* return the next identifier or keyword and avance `scanner.current` */
 static struct token identifier();
 /* trie to the lexeme and to return the right token */
 static enum token_type get_keyword_type(const char *str);
@@ -77,12 +86,12 @@ static enum token_type keywordcmp(int offset, const char* str, enum token_type t
 struct scan *scan_init(const char *filename)
 {
 	struct source *src = source_new(filename);
-	current = src->string;
+	scanner.current = src->string;
 	struct token_vector *ta = token_vector_init();
 
 	scan_tokens(ta);
 
-	ASSERT(valid_input, "Input has errors. Exiting.\n");
+	ASSERT(scanner.valid_input, "Input has errors. Exiting.\n");
 
 	struct scan *s = malloc(sizeof(struct scan));
 
@@ -105,7 +114,7 @@ static void scan_tokens(struct token_vector *ta)
 {
 	struct token t;
 	do {
-		start = current;
+		scanner.start = scanner.current;
 		t = get_token();
 		token_vector_add(ta, t);
 	} while (t.type != TOKEN_END_OF_FILE);
@@ -113,7 +122,7 @@ static void scan_tokens(struct token_vector *ta)
 
 static struct token get_token()
 {
-	switch (current[0]) {
+	switch (scanner.current[0]) {
 		/* single-character tokens */
 	case '(': advance(); return GET_TOKEN(TOKEN_LEFT_PAREN);
 	case ')': advance(); return GET_TOKEN(TOKEN_RIGHT_PAREN);
@@ -130,55 +139,55 @@ static struct token get_token()
 	case '\t': advance(); return GET_TOKEN(TOKEN_TAB);
 	case '\0': return GET_TOKEN(TOKEN_END_OF_FILE);
 	case '\n':
-		line++;
+		scanner.line++;
 		advance();
 		return GET_TOKEN(TOKEN_NEWLINE);
 		/* Comment */
 	case '#':
 		advance();
-		while (current[0] != '\n' && current[0] != '\0') advance();
-		start = current;
+		while (scanner.current[0] != '\n' && scanner.current[0] != '\0') advance();
+		scanner.start = scanner.current;
 		return get_token();
 
 		/* one or two character tokens */
 	case '-':
 		advance();
-		if (current[0] == '>') {
+		if (scanner.current[0] == '>') {
 			advance();
 			return GET_TOKEN(TOKEN_ARROW);
 		}
 		return GET_TOKEN(TOKEN_MINUS);
 	case ':':
 		advance();
-		if (current[0] == ':') {
+		if (scanner.current[0] == ':') {
 			advance();
 			return GET_TOKEN(TOKEN_COLON_COLON);
 		}
 		return GET_TOKEN(TOKEN_COLON);
 	case '!':
 		advance();
-		if (current[0] == '=') {
+		if (scanner.current[0] == '=') {
 			advance();
 			return GET_TOKEN(TOKEN_BANG_EQUAL);
 		}
 		return GET_TOKEN(TOKEN_BANG);
 	case '=':
 		advance();
-		if (current[0] == '=') {
+		if (scanner.current[0] == '=') {
 			advance();
 			return GET_TOKEN(TOKEN_EQUAL_EQUAL);
 		}
 		return GET_TOKEN(TOKEN_EQUAL);
 	case '>':
 		advance();
-		if (current[0] == '=') {
+		if (scanner.current[0] == '=') {
 			advance();
 			return GET_TOKEN(TOKEN_GREATER_EQUAL);
 		}
 		return GET_TOKEN(TOKEN_GREATER);
 	case '<':
 		advance();
-		if (current[0] == '=') {
+		if (scanner.current[0] == '=') {
 			advance();
 			return GET_TOKEN(TOKEN_LESS_EQUAL);
 		}
@@ -190,22 +199,22 @@ static struct token get_token()
 	case '\v':
 	case '\r':
 		advance();
-		start = current;
+		scanner.start = scanner.current;
 		return get_token();
 
 		/* literals */
 	case '"': advance(); return string();
 
 	default:
-		if (IS_DIGIT(current[0])) return digit();
-		if (IS_ALPHA(current[0])) return identifier();
+		if (IS_DIGIT(scanner.current[0])) return digit();
+		if (IS_ALPHA(scanner.current[0])) return identifier();
 
 		fprintf(stderr,
 			"Unexpected character %c at line %d.\n",
-			current[0], line);
+			scanner.current[0], scanner.line);
 
 		/* invalid */
-		valid_input = 0;
+		scanner.valid_input = 0;
 		advance();
 		return GET_TOKEN(TOKEN_INVALID);
 	}
@@ -213,23 +222,23 @@ static struct token get_token()
 
 static char advance()
 {
-	if (current[0] == '\0') return '\0';
+	if (scanner.current[0] == '\0') return '\0';
 
-	current++;
+	scanner.current++;
 
-	return current[-1];
+	return scanner.current[-1];
 }
 
 static struct token string()
 {
 	/* used to print error message */
-	int line_begin = line;
+	int line_begin = scanner.line;
 
-	while (current[0] != '"') {
-		if (current[0] == '\n') line++;
-		if (current[0] == '\\') advance();
+	while (scanner.current[0] != '"') {
+		if (scanner.current[0] == '\n') scanner.line++;
+		if (scanner.current[0] == '\\') advance();
 
-		if (current[0] != '\0') {
+		if (scanner.current[0] != '\0') {
 			advance();
 			continue;
 		}
@@ -244,14 +253,14 @@ static struct token string()
 
 static struct token digit()
 {
-	while (IS_DIGIT(current[0])) advance();
+	while (IS_DIGIT(scanner.current[0])) advance();
 
-	if (current[0] != '.') goto return_digit;
+	if (scanner.current[0] != '.') goto return_digit;
 
 	/* disallow defining a float as 'n.' */
-	if (!IS_DIGIT(current[1])) goto return_invalid;
+	if (!IS_DIGIT(scanner.current[1])) goto return_invalid;
 
-	while (IS_DIGIT(current[0])) advance();
+	while (IS_DIGIT(scanner.current[0])) advance();
 
 return_digit:
 	return GET_TOKEN(TOKEN_NUMBER);
@@ -259,18 +268,18 @@ return_digit:
 return_invalid:
 	fprintf(stderr,
 		"Trailing period not allowed at line %d.\n",
-		line);
+		scanner.line);
 	/* eat garbage input */
-	while (IS_ALPHA(current[0]) || IS_DIGIT(current[0])) advance();
+	while (IS_ALPHA(scanner.current[0]) || IS_DIGIT(scanner.current[0])) advance();
 	return GET_TOKEN(TOKEN_INVALID);
 }
 
 static struct token identifier()
 {
-	while (IS_ALPHA(current[0]) || IS_DIGIT(current[0])) advance();
+	while (IS_ALPHA(scanner.current[0]) || IS_DIGIT(scanner.current[0])) advance();
 
 	/* substring to string */
-	struct substring *sbstr = &(struct substring){.start=start, .end=current};
+	struct substring *sbstr = &(struct substring){.start=scanner.start, .end=scanner.current};
 	char str[SUBSTRING_LENGTH(*sbstr)];
 	sbstrcpy(sbstr, str);
 
@@ -297,7 +306,7 @@ static enum token_type get_keyword_type(const char *str) {
 		}
 	case 'c':
 		/* compare 'on' in 'const' and 'continue' */
-		if (strncmp(start + 1, str + 1, 2) != 0) return TOKEN_IDENTIFIER;
+		if (strncmp(scanner.start + 1, str + 1, 2) != 0) return TOKEN_IDENTIFIER;
 
 		switch (str[3]) {
 		case 's': return keywordcmp(4, "t", TOKEN_CONST); /* const */
@@ -331,7 +340,7 @@ static enum token_type get_keyword_type(const char *str) {
 		case 'a': return keywordcmp(2, "ss", TOKEN_PASS); /* pass */
 		case 'r':
 			/* compare 'int' in 'print' and 'print_err' */
-			if (strncmp(start + 2, str + 2, 3) != 0) return TOKEN_IDENTIFIER;
+			if (strncmp(scanner.start + 2, str + 2, 3) != 0) return TOKEN_IDENTIFIER;
 			if (str[5] == '\0') return TOKEN_PRINT; /* print */
 			return keywordcmp(5, "_err", TOKEN_PRINT_ERR); /* print_err */
 		default: return TOKEN_IDENTIFIER;
@@ -364,8 +373,8 @@ static enum token_type keywordcmp(int offset, const char* str, enum token_type t
 	/* convert the current lexeme substring into a string able to
 	 * be compared by `strcmp()` */
 	struct substring *sbstr = &(struct substring){
-		.start = start,
-		.end = current
+		.start = scanner.start,
+		.end = scanner.current
 	};
 	char s_sbstr[SUBSTRING_LENGTH(*sbstr)];
 	sbstrcpy(sbstr, s_sbstr);
