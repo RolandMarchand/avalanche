@@ -23,17 +23,23 @@
 
 #pragma once
 
-#define CONSTANT_ARRAY_BUFFER_COUNT 8
+#include "opcode.h"
+#include "lump.h"
+#include "src/scanner/scanner.h"
 
-struct constant_array {
-	double *array;
-	int size;
-	int count;
+#include <stdint.h>
+
+struct vm {
+	struct lump *lump;
+	uint8_t *pc;
 };
 
-/* Allocates a `constant_array` and returns its pointer. */
-struct constant_array *constant_array_init();
-/* Return the constant's index. */
-int constant_array_add(struct constant_array *ca, double value);
-/* Free the array and set `ca` to NULL. */
-void constant_array_free(struct constant_array *ca);
+enum interpret_result {
+	INTERPRET_OK,
+	INTERPRET_COMPILE_ERROR,
+	INTERPRET_RUNTIME_ERROR
+};
+
+/* void vm_init(); */
+/* void vm_free(); */
+enum interpret_result interpret(struct source *src);

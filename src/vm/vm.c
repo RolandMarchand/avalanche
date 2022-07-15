@@ -21,26 +21,57 @@
  * SUCH DAMAGE.
  */
 
-#pragma once
+#include "vm.h"
+#include "debug/debug.h"
 
-#include "opcode.h"
-#include "constant.h"
+#include <stdio.h>
 
-#include <stdint.h>
+static struct vm vm;
 
-struct lump {
-	uint8_t *array;
-	int size;
-	int count;
-	struct constant_array *constants;
-};
+static enum interpret_result run();
 
-#define LUMP_BUFFER_COUNT 8
+enum interpret_result interpret(struct source *src) {
+	struct lump *lmp = lump_init();
 
-struct lump *lump_init();
-void lump_free(struct lump *lmp);
+	if (!compile(src, lmp)) {
+		lump_free(lmp);
+		return INTERPRET_COMPILE_ERROR;
+	}
 
-/* Return the code's offset. */
-int lump_add_code(struct lump *lmp, enum op_code code);
-/* Return the constant's offset. */
-int lump_add_constant(struct lump *lmp, double value);
+	vm.lump = lmp;
+	vm.pc = lmp->array;
+
+	enum interpret_result result = run();
+
+	lump_free(lmp);
+	return result;
+}
+
+static enum interpret_result run()
+{
+#define READ_BYTE() (*vm.pc++)
+
+	while (1) {
+#ifdef DEBUG_TRACE_EXECUTION
+		disassemble_instruction(vm.lump, (int)(vm.pc - vm.lump->array));
+#endif
+		uint8_t instruction;
+		switch (instruction = READ_BYTE()) {
+		case OP_RETURN:
+			return INTERPRET_OK;
+		case OP_CONSTANT:
+			printf("%f\n", vm.lump->constants->array[READ_BYTE()]);
+			break;
+		case OP_CONSTANT_LONG: {
+			uint8_t byte1 = READ_BYTE();
+			uint8_t byte2 = READ_BYTE();
+			printf("%f\n", vm.lump->constants->array[byte1 << 8 | byte2]);
+			break;
+		}
+		default:
+			break;
+		}
+	}
+	
+#undef READ_BYTE
+}

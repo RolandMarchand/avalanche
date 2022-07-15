@@ -22,7 +22,7 @@
  */
 
 #include "lump.h"
-#include "constant.h"
+#include "constant_vector.h"
 #include "src/macros.h"
 
 #include <stdlib.h>

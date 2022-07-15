@@ -23,7 +23,24 @@
 
 #pragma once
 
-#include "src/vm.h"
+#include "opcode.h"
+#include "constant_vector.h"
 
-void disassemble(struct lump *l);
-void disassemble_instruction(struct lump *lmp, int offset);
+#include <stdint.h>
+
+struct lump {
+	uint8_t *array;
+	int size;
+	int count;
+	struct constant_vector *constants;
+};
+
+#define LUMP_BUFFER_COUNT 8
+
+struct lump *lump_init();
+void lump_free(struct lump *lmp);
+
+/* Return the code's offset. */
+int lump_add_code(struct lump *lmp, enum op_code code);
+/* Return the constant's offset. */
+int lump_add_constant(struct lump *lmp, double value);

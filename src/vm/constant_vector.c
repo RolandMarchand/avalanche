@@ -21,46 +21,48 @@
  * SUCH DAMAGE.
  */
 
-#include "vm.h"
-#include "debug/debug.h"
+#include "constant.h"
+#include "src/macros.h"
 
-#include <stdio.h>
+#include <stdlib.h>
 
-static struct vm vm;
+static void constant_vector_grow(struct constant_vector *ca);
 
-static enum interpret_result run();
+struct constant_vector *constant_vector_init()
+{
+	struct constant_vector *ca = malloc(sizeof(struct constant_vector));
 
-enum interpret_result interpret(struct lump *lmp) {
-	vm.lump = lmp;
-	vm.pc = lmp->array;
-	return run();
+	ASSERT(ca != NULL, "Unable to allocate memory for constant_vector.");
+
+	ca->count = 0;
+	ca->size = CONSTANT_VECTOR_BUFFER_COUNT * sizeof(double);
+	ca->array = malloc(ca->size);
+
+	ASSERT(ca->array != NULL, "Unable to allocate memory for constant_vector.");
+
+	return ca;
 }
 
-static enum interpret_result run()
+void constant_vector_free(struct constant_vector *ca)
 {
-#define READ_BYTE() (*vm.pc++)
+	free(ca->array);
+	free(ca);
+	ca = NULL;
+}
 
-	while (1) {
-#ifdef DEBUG_TRACE_EXECUTION
-		disassemble_instruction(vm.lump, (int)(vm.pc - vm.lump->array));
-#endif
-		uint8_t instruction;
-		switch (instruction = READ_BYTE()) {
-		case OP_RETURN:
-			return INTERPRET_OK;
-		case OP_CONSTANT:
-			printf("%f\n", vm.lump->constants->array[READ_BYTE()]);
-			break;
-		case OP_CONSTANT_LONG: {
-			uint8_t byte1 = READ_BYTE();
-			uint8_t byte2 = READ_BYTE();
-			printf("%f\n", vm.lump->constants->array[byte1 << 8 | byte2]);
-			break;
-		}
-		default:
-			break;
-		}
-	}
-	
-#undef READ_BYTE
+
+int constant_vector_add(struct constant_vector *ca, double d)
+{
+	if (ca->count == (ca->size / sizeof(double)))
+		constant_vector_grow(ca);
+	ca->array[ca->count] = d;
+	return ca->count++;
+}
+
+static void constant_vector_grow(struct constant_vector *ca)
+{
+	ca->size += CONSTANT_VECTOR_BUFFER_COUNT * sizeof(double);
+	ca->array = realloc(ca->array, ca->size);
+
+	ASSERT(ca->array != NULL, "Unable to grow constant_vector.");
 }
