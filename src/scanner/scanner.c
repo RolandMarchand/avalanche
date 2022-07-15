@@ -47,8 +47,6 @@ struct scanner {
 	char *start;
 	/* pointer to current character of the source code */
 	char *current;
-	/* determines if the source file contains valid tokens */
-	char valid_input;
 	/* line counter */
 	int line;
 };
@@ -57,7 +55,6 @@ static struct scanner scanner = (struct scanner){
 	.start = 0,
 	.current = 0,
 	.line = 0,
-	.valid_input = 1
 };
 
 /* fill up `ta` with the tokens from the source file
@@ -90,8 +87,6 @@ struct scan *scan_init(const char *filename)
 	struct token_vector *ta = token_vector_init();
 
 	scan_tokens(ta);
-
-	ASSERT(scanner.valid_input, "Input has errors. Exiting.\n");
 
 	struct scan *s = malloc(sizeof(struct scan));
 
@@ -214,7 +209,6 @@ static struct token get_token()
 			scanner.current[0], scanner.line);
 
 		/* invalid */
-		scanner.valid_input = 0;
 		advance();
 		return GET_TOKEN(TOKEN_INVALID);
 	}
