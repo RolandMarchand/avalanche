@@ -31,4 +31,9 @@ struct substring {
 	char *end;
 };
 
+/* write the contents of `from` to `to`
+ * `to` must have the size of SUBSTRING_LENGTH(from) */
 extern void sbstrcpy(const struct substring *from, char *to);
+/* return a manually allocated string of max size 1024
+ * if the size exceeds the limit, retun null*/
+extern char *sbstr2str(const struct substring *sbstr);

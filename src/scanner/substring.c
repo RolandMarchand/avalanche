@@ -24,9 +24,24 @@
 #include "substring.h"
 
 #include <string.h>
+#include <stdio.h>
 
 void sbstrcpy(const struct substring *from, char *to)
 {
 	strncpy(to, from->start, SUBSTRING_LENGTH(*from) - 1);
 	to[SUBSTRING_LENGTH(*from) - 1] = '\0';
+}
+
+char *sbstr2str(const struct substring *sbstr)
+{
+	if (SUBSTRING_LENGTH(*sbstr) > 1024) {
+          fprintf(stderr, "Max substring size of 1024 allowed.\
+Use sbstrcpy() instead.\n");
+		return NULL;
+	}
+
+	static char string[1024];
+	sbstrcpy(sbstr, string);
+
+	return string;
 }
