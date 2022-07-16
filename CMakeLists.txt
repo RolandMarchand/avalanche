@@ -12,13 +12,13 @@ add_library(scanner STATIC
 target_include_directories(scanner PUBLIC ./)
 
 add_library(vm STATIC
-  src/vm.c
-  src/lump.c
-  src/constant.c)
+  src/vm/vm.c
+  src/vm/lump.c
+  src/vm/constant_vector.c)
 target_include_directories(vm PUBLIC ./)
 
 add_library(_debug STATIC
-  src/debug/disassembler.c)
+  src/vm/debug/disassembler.c)
 target_include_directories(_debug PUBLIC ./)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
