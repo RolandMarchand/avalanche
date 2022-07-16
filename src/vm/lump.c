@@ -48,7 +48,7 @@ struct lump *lump_init()
 	lmp->count = 0;
 	lmp->size = LUMP_BUFFER_COUNT * sizeof(uint8_t);
 	lmp->array = malloc(lmp->size);
-	lmp->constants = constant_array_init();
+	lmp->constants = constant_vector_init();
 
 	ASSERT(lmp->array != NULL, "Unable to allocate memory for lump.");
 
@@ -57,7 +57,7 @@ struct lump *lump_init()
 
 void lump_free(struct lump *lmp)
 {
-	constant_array_free(lmp->constants);
+	constant_vector_free(lmp->constants);
 	free(lmp->array);
 	free(lmp);
 	lmp = NULL;
@@ -71,7 +71,7 @@ int lump_add_code(struct lump *lmp, enum op_code code)
 
 int lump_add_constant(struct lump *lmp, double d)
 {
-	int offset = constant_array_add(lmp->constants, d);
+	int offset = constant_vector_add(lmp->constants, d);
 
 	if (offset < 1 << 8)
 		lump_add_code_monadic(lmp, OP_CONSTANT, offset);
