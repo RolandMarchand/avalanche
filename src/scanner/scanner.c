@@ -279,8 +279,9 @@ static struct token identifier()
 
 	/* max identifier size of 1024 */
 	if (max_id_size <= 0) {
-		fprintf(stderr, "Identifier at line %d is too large,\
-max size of 1024 characters.", scanner.line);
+		fprintf(stderr,
+			"[line %d] ERROR: Identifier exceeds 1024 characters.\n",
+			scanner.line);
 		return GET_TOKEN(TOKEN_INVALID);
 	}
 
