@@ -247,16 +247,31 @@ static struct token string()
 
 static struct token digit()
 {
-	while (IS_DIGIT(scanner.current[0])) advance();
+	int max_digit_size = 1024;
+	while (IS_DIGIT(scanner.current[0])) {
+		advance();
+                max_digit_size--;
+	}
 
 	if (scanner.current[0] != '.') goto return_digit;
 
 	/* disallow defining a float as 'n.' */
 	if (!IS_DIGIT(scanner.current[1])) goto return_invalid;
 
-	while (IS_DIGIT(scanner.current[0])) advance();
+	while (IS_DIGIT(scanner.current[0])) {
+		advance();
+		max_digit_size--;
+	}
 
 return_digit:
+	/* max identifier size of 1024 */
+	if (max_digit_size <= 0) {
+		fprintf(stderr,
+			"[line %d] ERROR: Digit exceeds 1024 characters.\n",
+			scanner.line);
+		return GET_TOKEN(TOKEN_INVALID);
+	}
+
 	return GET_TOKEN(TOKEN_NUMBER);
 
 return_invalid:
@@ -273,8 +288,8 @@ static struct token identifier()
 	
 	int max_id_size = 1024;
 	while (IS_ALPHA(scanner.current[0]) || IS_DIGIT(scanner.current[0])) {
-		max_id_size--;
 		advance();
+		max_id_size--;
 	}
 
 	/* max identifier size of 1024 */
