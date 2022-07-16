@@ -34,8 +34,8 @@ void sbstrcpy(const struct substring *from, char *to)
 
 char *sbstr2str(const struct substring *sbstr)
 {
-	if (SUBSTRING_LENGTH(*sbstr) > 1024) {
-          fprintf(stderr, "Max substring size of 1024 allowed.\
+	if (SUBSTRING_LENGTH(*sbstr) > 1025) {
+          fprintf(stderr, "Max substring size of 1024 + null allowed.\
 Use sbstrcpy() instead.\n");
 		return NULL;
 	}

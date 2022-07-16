@@ -270,14 +270,23 @@ return_invalid:
 
 static struct token identifier()
 {
-	while (IS_ALPHA(scanner.current[0]) || IS_DIGIT(scanner.current[0])) advance();
+	
+	int max_id_size = 1024;
+	while (IS_ALPHA(scanner.current[0]) || IS_DIGIT(scanner.current[0])) {
+		max_id_size--;
+		advance();
+	}
 
-	/* substring to string */
-	struct substring *sbstr = &(struct substring){.start=scanner.start, .end=scanner.current};
-	char str[SUBSTRING_LENGTH(*sbstr)];
-	sbstrcpy(sbstr, str);
+	/* max identifier size of 1024 */
+	if (max_id_size <= 0) {
+		fprintf(stderr, "Identifier at line %d is too large,\
+max size of 1024 characters.", scanner.line);
+		return GET_TOKEN(TOKEN_INVALID);
+	}
 
-	enum token_type t = get_keyword_type(str);
+	char *string = sbstr2str(&(struct substring){.start=scanner.start, .end=scanner.current});
+
+	enum token_type t = get_keyword_type(string);
 	return GET_TOKEN(t);
 }
 
@@ -370,9 +379,7 @@ static enum token_type keywordcmp(int offset, const char* str, enum token_type t
 		.start = scanner.start,
 		.end = scanner.current
 	};
-	char s_sbstr[SUBSTRING_LENGTH(*sbstr)];
-	sbstrcpy(sbstr, s_sbstr);
 
-	if (strcmp(s_sbstr + offset, str) == 0) return t;
+	if (strcmp(sbstr2str(sbstr) + offset, str) == 0) return t;
 	return TOKEN_IDENTIFIER;
 }
