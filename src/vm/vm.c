@@ -40,6 +40,7 @@ enum interpret_result interpret(struct source *src) {
 
 	vm.lump = lmp;
 	vm.pc = lmp->array;
+	vm.stack_top = vm.stack;
 
 	enum interpret_result result = run();
 
@@ -72,6 +73,23 @@ static enum interpret_result run()
 			break;
 		}
 	}
-	
 #undef READ_BYTE
+}
+
+void vm_push(struct value v)
+{
+	if (vm.stack_top >= vm.stack + VM_STACK_SIZE)
+		return;
+
+	*vm.stack_top = v;
+	vm.stack_top++;
+}
+
+struct value *vm_pop()
+{
+	if (vm.stack_top <= vm.stack)
+		return NULL;
+
+	vm.stack_top--;
+	return vm.stack_top + 1;
 }
