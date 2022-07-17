@@ -34,6 +34,6 @@ int main(int argc, char **argv)
 	for (int i = 0; i < s->tokens->count; i++) {
 		char lexeme[SUBSTRING_LENGTH(s->tokens->array[i].lexeme)];
 		sbstrcpy(&s->tokens->array[i].lexeme, lexeme);
-		printf("%s\n", lexeme);
+		printf("%d: %s\n", s->tokens->array[i].type, lexeme);
 	}
 }
