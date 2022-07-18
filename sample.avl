@@ -67,9 +67,9 @@ func printing():
 	print("Avalanche " + "is" + " awesome.") # shorthand for:
 	print(str::cat("Avalanche ", "is", " awesome."))
 
-	# print() has an explicit str::ftm() statement
+	# print() has an explicit str::fmt() statement
 	print("It has been raining for %d days.\n", 3)
-	print(str::ftm("It has been raining for %d days.\n", 3))
+	print(str::fmt("It has been raining for %d days.\n", 3))
 
 	print_err("This gets printed to STDERR.")
 
