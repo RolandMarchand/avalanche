@@ -24,16 +24,12 @@
 #include "vm/vm.h"
 #include "vm/debug/debug.h"
 #include "scanner/scanner.h"
+#include "compiler/compiler.h"
 #include "macros.h"
 
 #include <stdio.h>
 
 int main(int argc, char **argv)
 {
-	struct scan * s = scan_init(argv[1]);
-	for (int i = 0; i < s->tokens->count; i++) {
-		char lexeme[SUBSTRING_LENGTH(s->tokens->array[i].lexeme)];
-		sbstrcpy(&s->tokens->array[i].lexeme, lexeme);
-		printf("%d: %s\n", s->tokens->array[i].type, lexeme);
-	}
+	interpret(argv[1]);
 }

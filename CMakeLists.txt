@@ -13,16 +13,22 @@ target_include_directories(scanner PUBLIC ./)
 
 add_library(vm STATIC
   src/vm/vm.c
+  src/vm/value.c
   src/vm/lump.c
-  src/vm/constant_vector.c)
+  src/vm/constant_vector.c
+  src/vm/debug/disassembler.c)
 target_include_directories(vm PUBLIC ./)
 
-add_library(_debug STATIC
-  src/vm/debug/disassembler.c)
-target_include_directories(_debug PUBLIC ./)
+add_library(compiler STATIC
+  src/compiler/compiler.c
+  src/compiler/parser.c
+  src/compiler/error.c)
+target_include_directories(compiler PUBLIC ./)
+target_link_libraries(compiler PRIVATE scanner vm)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -DDEBUG_TRACE_EXECUTION")
+
 add_executable(avalanche src/main.c)
-target_link_libraries(avalanche PUBLIC scanner vm _debug)
+target_link_libraries(avalanche PUBLIC scanner vm compiler)
 

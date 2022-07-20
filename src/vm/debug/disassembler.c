@@ -61,8 +61,60 @@ void disassemble_instruction(struct lump *lmp, int offset)
 
 static void print_code(struct lump *lmp, int *offset, int *line)
 {
-	switch(lmp->array[*offset]) {
-		/* The next byte is the constant's address. */
+	switch (lmp->array[*offset]) {
+	case OP_GREATER:
+		printf("OP_GREATER\n");
+                break;
+
+	case OP_GREATER_EQUAL:
+		printf("OP_GREATER_EQUAL\n");
+                break;
+
+	case OP_LESS:
+		printf("OP_LESS\n");
+                break;
+
+	case OP_LESS_EQUAL:
+		printf("OP_LESS_EQUAL\n");
+                break;
+
+	case OP_EQUAL:
+		printf("OP_EQUAL\n");
+                break;
+
+	case OP_NOT_EQUAL:
+		printf("OP_NOT_EQUAL\n");
+                break;
+
+	case OP_ADD:
+		printf("OP_ADD\n");
+                break;
+
+	case OP_SUBSTRACT:
+		printf("OP_SUBSTRACT\n");
+                break;
+
+	case OP_MULTIPLY:
+		printf("OP_MULTIPLY\n");
+                break;
+
+	case OP_MODULO:
+		printf("OP_MODULO\n");
+                break;
+
+	case OP_DIVIDE:
+		printf("OP_DIVIDE\n");
+                break;
+
+	case OP_LOGICAL_NOT:
+		printf("OP_LOGICAL_NOT\n");
+                break;
+
+	case OP_NEGATE:
+		printf("OP_NEGATE\n");
+                break;
+
+	/* The next byte is the constant's address. */
 	case OP_CONSTANT:
 		print_op_constant(lmp, offset);
 		*offset += 1;

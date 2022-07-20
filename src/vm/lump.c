@@ -71,21 +71,21 @@ int lump_add_code(struct lump *lmp, enum op_code code)
 
 int lump_add_constant(struct lump *lmp, double d)
 {
-	int offset = constant_vector_add(lmp->constants, d);
+	int const_offset = constant_vector_add(lmp->constants, d);
 
         /* OP_CONSTANT_LONG holds two bytes for the constant's offset
 	 * above two bytes, the constants are dropped */
-	if (offset >= 0xFFFF) {
+	if (const_offset >= 0xFFFF) {
 		fprintf(stderr, "Max constant count reached. Dropping %f.\n", d);
-		return offset;
+		return const_offset;
 	}
 
-	if (offset < 0x100)
-		lump_add_code_monadic(lmp, OP_CONSTANT, offset);
+	if (const_offset < 0x100)
+		lump_add_code_monadic(lmp, OP_CONSTANT, const_offset);
 	else
-		lump_add_code_dyladic(lmp, OP_CONSTANT_LONG, offset);
+		lump_add_code_dyladic(lmp, OP_CONSTANT_LONG, const_offset);
 
-	return offset;
+	return const_offset;
 }
 
 static void lump_grow(struct lump *lmp)

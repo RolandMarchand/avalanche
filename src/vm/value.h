@@ -25,6 +25,17 @@
 
 #include <stdint.h>
 
+#define GET_VALUE_NUMBER(num)					\
+	((struct value){					\
+		.as.number = (num),				\
+		.type = VALUE_NUMBER				\
+	})
+#define GET_VALUE_BOOL(boolean)					\
+	((struct value) {					\
+		.as.bool = !!(boolean),				\
+		.type = VALUE_BOOL				\
+	})
+
 enum value_type {
 	VALUE_NUMBER = 0,
 	VALUE_BOOL,
@@ -35,6 +46,21 @@ struct value {
 	union {
 		double number;
 		uint8_t bool;
+		void *structure;
 	} as;
 	enum value_type type;
 };
+
+struct value value_negate(struct value val);
+struct value value_logical_not(struct value val);
+struct value value_add(struct value val1, struct value val2);
+struct value value_substract(struct value val1, struct value val2);
+struct value value_multiply(struct value val1, struct value val2);
+struct value value_divide(struct value val1, struct value val2);
+struct value value_modulo(struct value val1, struct value val2);
+struct value value_greater(struct value val1, struct value val2);
+struct value value_greater_or_equal(struct value val1, struct value val2);
+struct value value_less(struct value val1, struct value val2);
+struct value value_less_or_equal(struct value val1, struct value val2);
+struct value value_equal(struct value val1, struct value val2);
+struct value value_not_equal(struct value val1, struct value val2);

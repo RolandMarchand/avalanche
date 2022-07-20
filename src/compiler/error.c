@@ -21,34 +21,29 @@
  * SUCH DAMAGE.
  */
 
-#pragma once
+#include "error.h"
+#include "parser.h"
 
-#include "opcode.h"
-#include "lump.h"
-#include "value.h"
-#include "src/scanner/scanner.h"
+#include <stdio.h>
 
-#include <stdint.h>
+void report(int line, char *message)
+{
+	parser.panic = 1;
 
-#define VM_STACK_SIZE 256
-
-struct vm {
-	struct lump *lump;
-	struct value stack[VM_STACK_SIZE];
-	struct value *stack_top;
-	uint8_t *pc;
-};
-
-enum interpret_result {
-	INTERPRET_OK,
-	INTERPRET_COMPILE_ERROR,
-	INTERPRET_RUNTIME_ERROR
-};
-
-enum interpret_result interpret(char *source);
-
-void vm_push_value(struct value val);
-struct value *vm_pop_value();
-
-void vm_add_constant(double value);
-void vm_add_code(enum op_code code);
+	switch(parser.current_token->type) {
+	case TOKEN_END_OF_FILE:
+		fprintf(stderr, "[line %d] at end: %s\n", line, message);
+		break;
+	case TOKEN_STRING:
+		fprintf(stderr, "[line %d] at \": %s\n", line, message);
+		break;
+	case TOKEN_INVALID:
+		fprintf(stderr, "[line %d] at invalid token: %s\n", line, message);
+		break;
+	case TOKEN_NEWLINE:
+		fprintf(stderr, "[line %d] at new line: %s\n", line, message);
+	default:
+		fprintf(stderr, "[line %d] at %s: %s\n",
+			line, sbstr2str(&parser.current_token->lexeme), message);
+	}	
+}

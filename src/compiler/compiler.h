@@ -23,32 +23,12 @@
 
 #pragma once
 
-#include "opcode.h"
-#include "lump.h"
-#include "value.h"
-#include "src/scanner/scanner.h"
+#include "parser.h"
+#include "error.h"
 
-#include <stdint.h>
-
-#define VM_STACK_SIZE 256
-
-struct vm {
-	struct lump *lump;
-	struct value stack[VM_STACK_SIZE];
-	struct value *stack_top;
-	uint8_t *pc;
+enum compile_error {
+	COMPILE_OK = 0,
+	COMPILE_ERROR
 };
 
-enum interpret_result {
-	INTERPRET_OK,
-	INTERPRET_COMPILE_ERROR,
-	INTERPRET_RUNTIME_ERROR
-};
-
-enum interpret_result interpret(char *source);
-
-void vm_push_value(struct value val);
-struct value *vm_pop_value();
-
-void vm_add_constant(double value);
-void vm_add_code(enum op_code code);
+enum compile_error compile(char *source);

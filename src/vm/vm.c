@@ -35,8 +35,11 @@ enum interpret_result interpret(char *source) {
 	struct lump *lmp = lump_init();
 	vm.lump = lmp;
 
-	if (!compile(source)) {
+	if (compile(source) != COMPILE_OK) {
 		lump_free(lmp);
+#ifdef DEBUG_TRACE_EXECUTION
+		fprintf(stderr, "INTERPRET_COMPILE_ERROR\n");
+#endif
 		return INTERPRET_COMPILE_ERROR;
 	}
 
@@ -62,12 +65,11 @@ static enum interpret_result run()
 		case OP_RETURN:
 			return INTERPRET_OK;
 		case OP_CONSTANT:
-			printf("%f\n", vm.lump->constants->array[READ_BYTE()]);
+			READ_BYTE();
 			break;
 		case OP_CONSTANT_LONG: {
-			uint8_t byte1 = READ_BYTE();
-			uint8_t byte2 = READ_BYTE();
-			printf("%f\n", vm.lump->constants->array[byte1 << 8 | byte2]);
+			READ_BYTE();
+			READ_BYTE();
 			break;
 		}
 		default:
@@ -95,13 +97,12 @@ struct value *vm_pop_value()
 	return vm.stack_top + 1;
 }
 
-int vm_add_constant(double value)
+void vm_add_constant(double value)
 {
-	return constant_vector_add(vm.lump->constants, value);
+	lump_add_constant(vm.lump, value);
 }
 
 void vm_add_code(enum op_code code)
 {
-//	printf("%d added.\n", code);
 	lump_add_code(vm.lump, code);
 }
