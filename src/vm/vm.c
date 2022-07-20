@@ -22,6 +22,7 @@
  */
 
 #include "vm.h"
+#include "src/compiler/compiler.h"
 #include "debug/debug.h"
 
 #include <stdio.h>
@@ -30,15 +31,15 @@ static struct vm vm;
 
 static enum interpret_result run();
 
-enum interpret_result interpret(struct source *src) {
+enum interpret_result interpret(char *source) {
 	struct lump *lmp = lump_init();
+	vm.lump = lmp;
 
-	if (!compile(src, lmp)) {
+	if (!compile(source)) {
 		lump_free(lmp);
 		return INTERPRET_COMPILE_ERROR;
 	}
 
-	vm.lump = lmp;
 	vm.pc = lmp->array;
 	vm.stack_top = vm.stack;
 
@@ -76,7 +77,7 @@ static enum interpret_result run()
 #undef READ_BYTE
 }
 
-void vm_push(struct value v)
+void vm_push_value(struct value v)
 {
 	if (vm.stack_top >= vm.stack + VM_STACK_SIZE)
 		return;
@@ -85,11 +86,22 @@ void vm_push(struct value v)
 	vm.stack_top++;
 }
 
-struct value *vm_pop()
+struct value *vm_pop_value()
 {
 	if (vm.stack_top <= vm.stack)
 		return NULL;
 
 	vm.stack_top--;
 	return vm.stack_top + 1;
+}
+
+int vm_add_constant(double value)
+{
+	return constant_vector_add(vm.lump->constants, value);
+}
+
+void vm_add_code(enum op_code code)
+{
+//	printf("%d added.\n", code);
+	lump_add_code(vm.lump, code);
 }

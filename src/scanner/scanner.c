@@ -98,7 +98,7 @@ struct scan *scan_init(const char *filename)
 	return s;
 }
 
-void scan_del(struct scan *s)
+void scan_free(struct scan *s)
 {
 	source_close(s->source);
 	token_vector_del(s->tokens);
@@ -129,7 +129,7 @@ static struct token get_token()
 	case '.': advance(); return GET_TOKEN(TOKEN_DOT);
 	case '+': advance(); return GET_TOKEN(TOKEN_PLUS);
 	case '*': advance(); return GET_TOKEN(TOKEN_STAR);
-	case '%': advance(); return GET_TOKEN(TOKEN_MODULO);
+	case '%': advance(); return GET_TOKEN(TOKEN_PERCENT);
 	case '/': advance(); return GET_TOKEN(TOKEN_SLASH);
 	case '\t': advance(); return GET_TOKEN(TOKEN_TAB);
 	case '\0': return GET_TOKEN(TOKEN_END_OF_FILE);

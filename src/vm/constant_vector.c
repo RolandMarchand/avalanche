@@ -50,12 +50,19 @@ void constant_vector_free(struct constant_vector *ca)
 	ca = NULL;
 }
 
-
 int constant_vector_add(struct constant_vector *ca, double d)
 {
-	if (ca->count == (ca->size / sizeof(double)))
+	/* No duplicates */
+	for (int i = 0; i < ca->count; i++) {
+		if (ca->array[i] == d) return i;
+	}
+		
+	if (ca->count == (ca->size / sizeof(double))) {
 		constant_vector_grow(ca);
+	}
+
 	ca->array[ca->count] = d;
+
 	return ca->count++;
 }
 

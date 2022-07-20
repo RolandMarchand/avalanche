@@ -45,6 +45,12 @@ enum interpret_result {
 	INTERPRET_RUNTIME_ERROR
 };
 
-enum interpret_result interpret(struct source *src);
-void vm_push(struct value v);
-struct value *vm_pop();
+enum interpret_result interpret(char *source);
+
+void vm_push_value(struct value val);
+struct value *vm_pop_value();
+
+/* return the constant's index */
+int vm_add_constant(double value);
+
+void vm_add_code(enum op_code code);
