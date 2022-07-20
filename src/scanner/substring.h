@@ -34,8 +34,8 @@ struct substring {
 /* write the contents of `from` to `to`
  * `to` must have the size of SUBSTRING_LENGTH(from)
  * safe to use with all tokens */
-extern void sbstrcpy(const struct substring *from, char *to);
+void sbstrcpy(const struct substring *from, char *to);
 /* return a statically allocated string of max size 1024
  * if the size exceeds the limit, return null
  * unsafe to use with TOKEN_STRING and TOKEN_INVALID lexemes. */
-extern char *sbstr2str(const struct substring *sbstr);
+char *sbstr2str(const struct substring *sbstr);

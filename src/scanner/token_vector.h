@@ -32,6 +32,6 @@ struct token_vector {
 	int count;
 };
 
-extern struct token_vector *token_vector_init();
-extern void token_vector_add(struct token_vector *ta, struct token t);
-extern void token_vector_del(struct token_vector *ta);
+struct token_vector *token_vector_init();
+void token_vector_add(struct token_vector *ta, struct token t);
+void token_vector_del(struct token_vector *ta);

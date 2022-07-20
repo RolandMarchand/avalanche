@@ -55,5 +55,5 @@ struct scan {
 	struct token_vector *tokens;
 };
 
-extern struct scan *scan_init(const char *filename);
-extern void scan_del(struct scan *s);
+struct scan *scan_init(const char *filename);
+void scan_free(struct scan *s);

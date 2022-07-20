@@ -32,5 +32,5 @@ struct source {
 	int file_descriptor;
 };
 
-extern struct source *source_new(const char *file);
-extern void source_close(struct source *sf);
+struct source *source_new(const char *file);
+void source_close(struct source *sf);
