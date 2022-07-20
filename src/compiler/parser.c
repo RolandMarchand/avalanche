@@ -158,25 +158,25 @@ static struct value unary()
 static struct value primary()
 {
 	struct token* t = advance();
-	switch (t->type) {
+
+        switch (t->type) {
 	case TOKEN_NUMBER: {
 		return GET_VALUE_NUMBER(atof(sbstr2str(&t->lexeme)));
 	}
+
 	case TOKEN_LEFT_PAREN: {
 		/* advance the current token
 		 * `t` is now obsolete */
 		struct value value = expression(); 	
 
-		if (!CURRENT_TOKEN_IS(TOKEN_RIGHT_PAREN)) {
+		if (advance()->type != TOKEN_RIGHT_PAREN) {
 			report(parser.current_token->line,
 				"Expected ')' after expression.");
 		}
 
 		return value;
 	}
-	case TOKEN_END_OF_FILE:
-		report(t->line, "EOD reached.");
-		break;
+
 	default:
 		report(t->line, "No expression found.");
 	}
