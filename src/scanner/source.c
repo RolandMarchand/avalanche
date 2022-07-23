@@ -38,17 +38,15 @@ struct source *source_new(const char *file)
 
 	int fd = open(file, O_RDONLY);
 	char *code = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+	ASSERT(close(fd) != -1, "Failed to deallocate the file descriptor.");
 
 	struct source *sf = malloc(sizeof(struct source));
-
 	ASSERT(fd != -1 && code != MAP_FAILED && sf != NULL,
 	       "Failed to allocate source file.");
-
 	*sf = (struct source){
 		.string = code,
 		.file_name = file,
 		.size = sb.st_size,
-		.file_descriptor = fd
 	};
 
 	return sf;
@@ -56,9 +54,6 @@ struct source *source_new(const char *file)
 
 void source_close(struct source *sf)
 {
-	ASSERT(munmap(sf->string, sf->size) != -1 &&
-	       close(sf->file_descriptor) != -1, "Unable to close source file.");
-
+	ASSERT(munmap(sf->string, sf->size) != -1, "Unable to close source file.");
 	free(sf);
-	sf = NULL;
 }
