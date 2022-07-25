@@ -253,9 +253,11 @@ static struct token digit()
                 max_digit_size--;
 	}
 
+	char is_int = 1;
 	if (scanner.current[0] != '.') goto return_digit;
+	is_int = 0;
 
-	/* disallow defining a float as 'n.' */
+        /* disallow defining a float as 'n.' */
 	if (!IS_DIGIT(scanner.current[1])) goto return_invalid;
 
 	while (IS_DIGIT(scanner.current[0])) {
@@ -271,8 +273,7 @@ return_digit:
 			scanner.line);
 		return GET_TOKEN(TOKEN_INVALID);
 	}
-
-	return GET_TOKEN(TOKEN_NUMBER);
+	return (is_int) ? GET_TOKEN(TOKEN_CONSTANT_INT) : GET_TOKEN(TOKEN_CONSTANT_FLOAT);
 
 return_invalid:
 	fprintf(stderr,
@@ -300,9 +301,11 @@ static struct token identifier()
 		return GET_TOKEN(TOKEN_INVALID);
 	}
 
-	char *string = sbstr2str(&(struct substring){.start=scanner.start, .end=scanner.current});
+	struct substring *sbstr_kwd = &(struct substring){.start=scanner.start, .end=scanner.current};
+	char str_kwd[SUBSTRING_LENGTH(*sbstr_kwd)];
+	sbstrcpy(sbstr_kwd, str_kwd);
 
-	enum token_type t = get_keyword_type(string);
+	enum token_type t = get_keyword_type(str_kwd);
 	return GET_TOKEN(t);
 }
 
