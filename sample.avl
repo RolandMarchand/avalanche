@@ -167,7 +167,7 @@ func casting_examples():
 # designed to hold in information and nothing more. Recipes can also
 # act as namespaces
 
-recipe FriendlyRecipe
+recipe FriendlyRecipe:
 	int friends
 
 	func ask_about_friends_count(const ref FriendlyRecipe fr):
