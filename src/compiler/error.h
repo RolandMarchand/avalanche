@@ -23,4 +23,19 @@
 
 #pragma once
 
-void report(int line, char *message);
+#include <stdio.h>
+
+/*
+ * Helper macro for the function __report__. It requires an integer,
+ * and a formatted string input of variable length. The max length of
+ * the input is of 1024 characters. Each subsequent character will be
+ * ignored.
+ */
+#define COMPILER_REPORT(line, ...)			\
+	{						\
+		char message[1025] = {0};		\
+		snprintf(message, 1024, __VA_ARGS__);	\
+		__report__(line, message);		\
+	}
+	
+void __report__(int line, char *message);

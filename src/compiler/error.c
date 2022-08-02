@@ -26,7 +26,10 @@
 
 #include <stdio.h>
 
-void report(int line, char *message)
+/* defined in parser.c */
+extern struct parser parser;
+
+void __report__(int line, char *message)
 {
 	parser.panic = 1;
 
