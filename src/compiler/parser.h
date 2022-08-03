@@ -32,6 +32,4 @@ struct parser {
 	uint8_t panic;
 };
 
-extern struct parser parser;
-
 void parse(struct scan *sc);

@@ -22,7 +22,8 @@
  */
 
 #include "compiler.h"
-#include "src/vm/vm.h"
+#include "src/value.h"
+#include "type.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,14 +50,13 @@ void parse(struct scan *sc)
 	parser.current_token = sc->tokens->array;
 	parser.panic = 0;
 	struct value val = expression();
-	printf("%g\n", val.as.number);
+	printf("%g\n", val.as.float_p);
 }
 
 static struct token *advance() {
 	if (CURRENT_TOKEN_IS(TOKEN_END_OF_FILE)) {
 		return parser.current_token;
 	}
-	
 	return parser.current_token++;
 }
 
@@ -78,7 +78,6 @@ static struct value equality()
 		default: break;
 		}
 	}
-
 	return val;
 }
 
@@ -100,7 +99,6 @@ static struct value comparison()
 		default: break;
 		}
 	}
-
 	return val;
 }
 
@@ -117,7 +115,6 @@ static struct value term()
 		default: break;	/* should not reach here */
 		}
 	}
-
 	return val;
 }
 
@@ -136,7 +133,6 @@ static struct value factor()
 		default: break;	/* should not reach here */ 
 		}
 	}
-
 	return val;
 }
 
@@ -151,7 +147,6 @@ static struct value unary()
 		default: break;	/* should not reach here */
 		}
 	}
-
 	return primary();
 }
 
@@ -160,27 +155,23 @@ static struct value primary()
 	struct token* t = advance();
 
         switch (t->type) {
-	case TOKEN_NUMBER: {
-		return GET_VALUE_NUMBER(atof(sbstr2str(&t->lexeme)));
-	}
-
+	case TOKEN_CONSTANT_INT:
+		return GET_VALUE_INT(atoi(sbstr2str(&t->lexeme)));
+	case TOKEN_CONSTANT_FLOAT:
+		return GET_VALUE_FLOAT(atof(sbstr2str(&t->lexeme)));
 	case TOKEN_LEFT_PAREN: {
 		/* advance the current token
 		 * `t` is now obsolete */
 		struct value value = expression(); 	
-
 		if (advance()->type != TOKEN_RIGHT_PAREN) {
-			report(parser.current_token->line,
+			COMPILER_REPORT(parser.current_token->line,
 				"Expected ')' after expression.");
 		}
-
 		return value;
 	}
-
 	default:
-		report(t->line, "No expression found.");
+		COMPILER_REPORT(t->line, "No expression found.");
 	}
-
 	return (struct value){};
 }
 
@@ -190,6 +181,5 @@ static int __TOKEN_IS__(const struct token *tok, const enum token_type type[])
 	for (int i = 0; type[i] != NOT_A_TOKEN; i++) {
 		if (tok->type == type[i]) return 1;
 	}
-
         return 0;
 }
