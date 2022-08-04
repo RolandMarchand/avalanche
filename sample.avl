@@ -13,12 +13,7 @@ float f = 1.2 # all floats are doubles
 
 bool b = true
 str s = "Hello World!"
-array a = [1, false, "brown fox"] # an array, similar to list in Python
-                                  # or in GDScript. it can hold
-                                  # different types of variables at once
-
-# pool arrays can only hold one type
-array::str s_arr = ["Hi", "there", "!"] 
+str s_arr = {"Hi", "there", "!"}
 
 # map holds key-value pairs
 map d = { 
@@ -52,24 +47,24 @@ func add(int first, int second) -> int: # return type
 # float = 0.0
 # bool = false
 # str = ""
-# array = []
+# array = {}
 func default_args(str first_name = "stranger", str last_name):
 	print("Nice to meet you, %s %s\n", first_name, last_name)
 
 func default_args_print():
 	# "Nice to meet you, stranger"
-	FunFuncExample::default_args()
+	FunFuncExample.default_args()
 
 
 # Printing Values
 func printing():
 	print("Hello, World!")
 	print("Avalanche " + "is" + " awesome.") # shorthand for:
-	print(str::cat("Avalanche ", "is", " awesome."))
+	print(str.cat("Avalanche ", "is", " awesome."))
 
-	# print() has an explicit str::fmt() statement
+	# print() has an explicit str.fmt() statement
 	print("It has been raining for %d days.\n", 3)
-	print(str::fmt("It has been raining for %d days.\n", 3))
+	print(str.fmt("It has been raining for %d days.\n", 3))
 
 	print_err("This gets printed to STDERR.")
 
@@ -83,18 +78,18 @@ func doing_math():
 	print("%d\n", first * second) # 32
 	print("%d\n", first / second) # 2
 	print("%d\n", first % second) # 0
-	# TODO, find a better name for math::remainder()
+	# TODO, find a better name for math.remainder()
 	
 	# '%' performs a modulo operation,
-	# for the remainder, use math::remainder()
+	# for the remainder, use math.remainder()
 	
 	# There are also +=, -=, *=, /=, %= etc.,
 	# however no ++ or -- operators
 	
-	math::pow(first, 2) # 64
-	math::sqrt(second) # 2
+	math.pow(first, 2) # 64
+	math.sqrt(second) # 2
 	
-	print(math::PI, math::TAU, math::INF, math::NAN) # built-in constants
+	print(math.PI, math.TAU, math.INF, math.NAN) # built-in constants
 
 
 # Control Flow
@@ -121,7 +116,7 @@ func control_flow():
 	for i in range(20):
 		print("%d\n", i) # print numbers from 0 to 19
 
-	for i in ["two", 3, 1.0]: # iterating over an array
+	for i in {"two", 3, 1.0}: # iterating over an array
 		print("%A\n", i)
 
 	while x > y:
@@ -155,7 +150,7 @@ func control_flow():
 func casting_examples():
 	float a = 42 # implicit type casting
 	float b = 42 as float # same as this
-	float c = float::to(42) # which is a syntatic sugar for this
+	float c = float.to(42) # which is a syntatic sugar for this
 
 
 # Recipes, Avalanche Classes
@@ -180,7 +175,7 @@ func use_friendly_recipe():
 	FriendlyRecipe fr
 	fr.friends = 10
 	# prints "I have 10 lovely friend(s)!"
-	FriendlyRecipe::ask_about_friends_count(fr)
+	FriendlyRecipe.ask_about_friends_count(fr)
 
 
 # Allocation
